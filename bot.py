@@ -39,15 +39,17 @@ async def on_message_create(event: dis.events.MessageCreate):
     else:
         video_id = link.id
     aweme = await get_aweme_data(video_id)
+
     direct_download = aweme["aweme_detail"]["video"]["play_addr"]["url_list"][
         2
     ]  # NOTE: Index 2 is the default CDN
     short_url = await get_short_url(direct_download, video_id)
+
     more_info_btn = dis.Button(
         dis.ButtonStyles.GRAY,
         "Info",
         "🌐",
-        custom_id=f"id{video_id}",
+        custom_id=f"v_id{video_id}",
     )
     delete_msg_btn = dis.Button(
         dis.ButtonStyles.RED,
@@ -61,11 +63,16 @@ async def on_message_create(event: dis.events.MessageCreate):
 async def on_button_click(event: dis.events.Button):
     ctx = event.context
     if ctx.custom_id == "delete_msg":
-        await ctx.message.delete()
-    elif ctx.custom_id.startswith("id"):
+        if dis.Permissions.MANAGE_MESSAGES in ctx.author.channel_permissions(ctx.channel) or ctx.author.has_permission(dis.Permissions.MANAGE_MESSAGES):
+            await ctx.message.delete()
+        elif ctx.author.id == (await ctx.message.fetch_referenced_message()).author.id:
+            await ctx.delete()
+        else:
+            await ctx.send("You don't have the permissions to delete this message.", ephemeral=True)
+    elif ctx.custom_id.startswith("v_id"):
         await ctx.defer(ephemeral=True)
 
-        data = await get_aweme_data(int(ctx.custom_id[2:]))
+        data = await get_aweme_data(int(ctx.custom_id[4:]))
 
         avatar = data["aweme_detail"]["author"]["avatar_thumb"]["url_list"][0]
         nickname = data["aweme_detail"]["author"]["nickname"]
@@ -79,11 +86,11 @@ async def on_button_click(event: dis.events.Button):
         download_count = data["aweme_detail"]["statistics"]["download_count"]
         link_to_video = "https://m.tiktok.com/v/" + data["aweme_detail"]["aweme_id"]
         origin_cover = data["aweme_detail"]["video"]["origin_cover"]["url_list"][0]
+        desc = data["aweme_detail"]["desc"]
 
-        embed = dis.Embed("TikTok Details")
+        embed = dis.Embed(desc if desc != "" else None, description=link_to_video)
 
         embed.set_author(name=nickname, icon_url=avatar, url=author_url)
-        embed.description = link_to_video
         embed.set_thumbnail(url=origin_cover)
         embed.add_field("Views 👁️", play_count, True)
         embed.add_field("Likes ❤️", like_count, True)
@@ -98,6 +105,19 @@ async def on_button_click(event: dis.events.Button):
         direct_download = data["aweme_detail"]["video"]["play_addr"]["url_list"][
             2
         ]  # NOTE: Index 2 is the default CDN
+
+        download_btn = dis.Button(
+            dis.ButtonStyles.URL,
+            "Download",
+            url=direct_download
+        )
+
+        audio_btn =  dis.Button(
+            dis.ButtonStyles.GRAY,
+            "Audio",
+            emoji="🎵",
+            custom_id=f"m_id{data['aweme_detail']['music']['id']}",
+        )
 
         c.execute(
             "SELECT * FROM cache WHERE video_id = ?",
@@ -115,33 +135,38 @@ async def on_button_click(event: dis.events.Button):
                 await edit_me.edit(content=short_url)
                 return
             else:
-                await ctx.send(embed=embed)
+                await ctx.send(embed=embed, components=[download_btn, audio_btn])
         else:
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, components=[download_btn, audio_btn])
             short_url = await get_short_url(
                 direct_download, data["aweme_detail"]["aweme_id"]
             )
             edit_me = ctx.channel.get_message(ctx.message.id)
             await edit_me.edit(content=short_url)
             return
+    elif ctx.custom_id.startswith("m_id"):
+        await ctx.defer(ephemeral=True)
+        data = await get_music_data(int(ctx.custom_id[4:]))
+        play_link = data["musicInfo"]["music"]["playUrl"]
+        author_name = data["musicInfo"]["author"]["nickname"]
+        autor_id = data["musicInfo"]["author"]["id"]
+        author_url = f"https://www.tiktok.com/@{data['musicInfo']['author']['uniqueId']}"
+        author_avatar = data["musicInfo"]["author"]["avatarThumb"]
+        title = data["musicInfo"]["music"]["title"]
+        video_count = data["musicInfo"]["stats"]["videoCount"]
+        cover = data["musicInfo"]["music"]["coverLarge"]
+
+        embed = dis.Embed(title=title, url=f"https://www.tiktok.com/music/song-{data['musicInfo']['music']['id']}")
+
+        embed.set_author(name=author_name, url=author_url, icon_url=author_avatar)
+        embed.set_thumbnail(url=cover)
+        embed.add_field(name="Video Count 📱", value=video_count, inline=False)
+        
+
+        await ctx.send(embed=embed, components=dis.Button(dis.ButtonStyles.URL, url=play_link, label="Download"))
 
 
-# @dis.slash_command("tiktok")
-# @dis.slash_option("url", "url of the video", dis.OptionTypes.STRING, required=True)
-# async def tiktok(ctx: dis.InteractionContext, url: str):
-#     """
-#     Gets the direct download link of a TikTok video.
-#     """
-#     link = check_for_link(url)
-#     if not link: return
-#     if link.type == VideoIdType.SHORT:
-#         video_id = await get_video_id(link.url)
-#     else:
-#         video_id = link.id
-#     aweme = await get_aweme_data(video_id)
-#     direct_download = aweme["aweme_detail"]["video"]["play_addr"]["url_list"][2] # NOTE: Index 2 is the default CDN
-#     short_url = await shorten_url(direct_download)
-#     return await ctx.send(short_url)
+
 
 
 async def get_short_url(url: str, video_id: int) -> str:
@@ -202,7 +227,7 @@ async def get_video_id(url: str) -> int:
 
 
 async def get_aweme_data(video_id: int = None) -> dict:
-    """Downlods the video.
+    """Gets the video data
 
     args:
         video_id: The video id.
@@ -210,11 +235,29 @@ async def get_aweme_data(video_id: int = None) -> dict:
     returns:
         The video data.
     """
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(2)) as session:
         async with session.get(
             f"https://api2.musical.ly/aweme/v1/aweme/detail/?aweme_id={video_id}",
             allow_redirects=False,
         ) as response:
+            return await response.json()
+
+async def get_music_data(music_id: int = None) -> dict:
+    """
+    Gets the music data.
+
+    args:
+        music_id: The music id.
+    
+    returns:
+        The music data.
+    """
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"https://tiktok.com/api/music/detail/?language=en&musicId={music_id}",
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0"},
+        ) as response:
+            print(await response.text())
             return await response.json()
 
 
@@ -235,10 +278,13 @@ def check_for_link(content: str) -> Optional["LinkData"]:
     returns:
         LinkData
     """
-    long_match = re.search(long_link_regex, content)
-    short_match = re.search(short_link_regex, content)
-    medium_match = re.search(medium_link_regex, content)
-
+    try:
+        long_match = re.search(long_link_regex, content)
+        short_match = re.search(short_link_regex, content)
+        medium_match = re.search(medium_link_regex, content)
+    except TypeError as e:
+        print(f"{content} is not a string")
+        print(type(content))
     if long_match:
         if not long_match.group("http"):
             return LinkData.from_list(

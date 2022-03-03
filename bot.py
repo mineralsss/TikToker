@@ -19,7 +19,7 @@ bot = dis.Snake(
     intents=dis.Intents.MESSAGES | dis.Intents.DEFAULT,
     sync_interactions=True,
     debug_scope=780435741650059264,
-    delete_unused_application_cmds=True,
+    delete_unused_application_cmds=False,
 )
 
 
@@ -209,6 +209,7 @@ async def setup_config(
 
 @dis.context_menu("Convert 📸", dis.CommandTypes.MESSAGE)
 async def convert_video(ctx: dis.InteractionContext):
+    await ctx.defer()
     link = check_for_link(ctx.target.content)
     if not link:
         return
@@ -220,10 +221,18 @@ async def convert_video(ctx: dis.InteractionContext):
         video_id = link.id
     aweme = await get_aweme_data(video_id)
 
+    if not aweme.get("aweme_detail"):
+        if cached_url := get_short_url(video_id):
+            await ctx.send(f"The video is not available.\n This link may work if TikTok has not removed it from their API: <{cached_url}>")
+            return
+        else:
+            await ctx.send("The video is not available.")
+            return
+
     direct_download = aweme["aweme_detail"]["video"]["play_addr"]["url_list"][
         2
     ]  # NOTE: Index 2 is the default CDN
-    short_url = await get_short_url(direct_download, video_id)
+    short_url = await create_short_url(direct_download, video_id)
 
     more_info_btn = dis.Button(
         dis.ButtonStyles.GRAY,
@@ -264,10 +273,12 @@ async def on_message_create(event: dis.events.MessageCreate):
         video_id = link.id
     aweme = await get_aweme_data(video_id)
 
+    if not aweme.get("aweme_detail"):
+        return
     direct_download = aweme["aweme_detail"]["video"]["play_addr"]["url_list"][
         2
     ]  # NOTE: Index 2 is the default CDN
-    short_url = await get_short_url(direct_download, video_id)
+    short_url = await create_short_url(direct_download, video_id)
 
     more_info_btn = dis.Button(
         dis.ButtonStyles.GRAY,
@@ -362,7 +373,7 @@ async def on_button_click(event: dis.events.Button):
                 datetime.datetime.timestamp(datetime.datetime.now())
             ) or not ctx.message.content.endswith(entry["tiktoker_slug"]):
                 await ctx.send(embed=embed)
-                short_url = await get_short_url(
+                short_url = await create_short_url(
                     direct_download, data["aweme_detail"]["aweme_id"]
                 )
                 edit_me = ctx.channel.get_message(ctx.message.id)
@@ -372,7 +383,7 @@ async def on_button_click(event: dis.events.Button):
                 await ctx.send(embed=embed, components=[download_btn, audio_btn])
         else:
             await ctx.send(embed=embed, components=[download_btn, audio_btn])
-            short_url = await get_short_url(
+            short_url = await create_short_url(
                 direct_download, data["aweme_detail"]["aweme_id"]
             )
             edit_me = ctx.channel.get_message(ctx.message.id)
@@ -421,7 +432,8 @@ async def on_button_click(event: dis.events.Button):
         )
 
 
-async def get_short_url(url: str, video_id: int) -> str:
+
+async def create_short_url(url: str, video_id: int) -> str:
     """
     Shortens a url if not in cache.
 
@@ -467,6 +479,14 @@ async def get_short_url(url: str, video_id: int) -> str:
             conn.commit()
             return data.get("shortened")
 
+def get_short_url(video_id: int) -> Optional[str]:
+    c.execute("SELECT * FROM cache WHERE video_id=?", (video_id,))
+    if data := c.fetchone():
+        if int(data["timestamp"]) > trunc(
+            datetime.datetime.timestamp(datetime.datetime.now())
+        ):
+            return "https://tiktoker.win/" + data["tiktoker_slug"]
+    return None
 
 async def get_video_id(url: str) -> int:
     """
@@ -648,7 +668,8 @@ def insert_usage_data(guild_id: int, user_id: int, video_id: int, message_id: in
         video_id: The video id.
         message_id: The message id with the video.
     """
-
+    if get_opted_out(user_id):
+        return
 
     c.execute(
         "INSERT INTO usage_data VALUES (?, ?, ?, ?)",

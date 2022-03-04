@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from math import trunc
 from typing import List, Optional
@@ -9,7 +9,6 @@ import aiohttp
 import re
 from urllib.parse import urlsplit, parse_qs
 import sqlite3
-import datetime
 
 from dotenv import get_key
 
@@ -18,10 +17,8 @@ from dis_snek.ext.paginators import Paginator
 bot = dis.Snake(
     intents=dis.Intents.MESSAGES | dis.Intents.DEFAULT,
     sync_interactions=True,
-    debug_scope=780435741650059264,
-    delete_unused_application_cmds=True,
+    delete_unused_application_cmds=False,
 )
-
 
 conn = sqlite3.connect("database.db")
 
@@ -42,7 +39,7 @@ c.execute(
     "CREATE TABLE IF NOT EXISTS config (guild_id INTEGER PRIMARY KEY, auto_embed BOOLEAN DEFAULT 1, delete_origin BOOLEAN DEFAULT 0, suppress_origin_embed BOOLEAN DEFAULT 1)"
 )
 c.execute(
-    "CREATE TABLE IF NOT EXISTS usage_data (guild_id INTEGER, user_id INTEGER, video_id INTEGER)"
+    "CREATE TABLE IF NOT EXISTS usage_data (guild_id INTEGER, user_id INTEGER NULL, video_id INTEGER, message_id INTEGER NULL, timestamp INTEGER)"
 )
 c.execute("CREATE TABLE IF NOT EXISTS opted_out (user_id INTEGER PRIMARY KEY)")
 
@@ -120,7 +117,16 @@ async def help(ctx: dis.InteractionContext):
                 dis.EmbedField("Delete Origin", "When enabled and _Auto Embed_ is enabled, the bot will delete the message that sent the Tiktok link.").to_dict(),
                 dis.EmbedField("Suppress Origin Embed", "Toggles the suppress origin embed feature.").to_dict(),
             ]
-        )
+        ),
+        dis.Embed(
+            "Commands",
+            "Here are some commands that can be used to interact with the bot.",
+            color="#00FFF0",
+            fields=[
+                dis.EmbedField("Convert 📸", "Right click a message then go to *`Apps > Convert 📸`*. \nMeant for when *Auto Embed* is disabled in the server's config.").to_dict(),
+            ]
+        ),
+
     ]
 
     paginator = Paginator.create_from_embeds(bot, *embeds, timeout=20)
@@ -134,11 +140,29 @@ async def help(ctx: dis.InteractionContext):
     
 @dis.slash_command(name="privacy", description="Inform yourself on some of the data we collect.", sub_cmd_name="policy", sub_cmd_description="Review our Privacy Policy.")
 async def privacy_policy(ctx: dis.InteractionContext):
+    await ctx.defer(True)
     await ctx.send("This is a placeholder") #TODO: Make a privacy policy
 
-@dis.slash_command(name="privacy", description="Inform yourself on some of the data we collect.", sub_cmd_name="options", sub_cmd_description="Choose what we can collect about you.")
-async def privacy_options(ctx: dis.InteractionContext):
-    await ctx.send("This is a placeholder") #TODO: Make a privacy policy
+@dis.slash_command(name="privacy", description="Inform yourself on some of the data we collect.", group_name="usage", sub_cmd_name="data", sub_cmd_description="Choose what we can collect about you.")
+@dis.slash_option("collect", "Save usage data?", dis.OptionTypes.STRING, choices=[dis.SlashCommandChoice("yes", "yes"), dis.SlashCommandChoice("no", "no"), dis.SlashCommandChoice("delete", "delete")])
+async def privacy_options(ctx: dis.InteractionContext, collect: str = None):
+    await ctx.defer(True)
+
+    if collect is None:
+        await ctx.send(f"You are currently: {'Opted Out' if get_opted_out(ctx.author.id) else 'Opted In'} \n\n**We take your privacy seriously.**\nYour data is not shared with the public. **Usage data is used to share statistics like total videos converted and total users.** \nPlease consider sharing your data with us if you want to help us improve the bot. \nYou can change this setting by using `/config collect:True` or `/config collect:False`. \n\nYou can also delete your usage data by using `/config collect:delete`.")
+        return
+
+    if collect == "yes":
+        await ctx.send("Thank you for sharing your data with us. Remember this is not shared with anyone.")
+        remove_opted_out(ctx.author.id)
+
+    elif collect == "no":
+        await ctx.send("You have opted out of usage data collection. Thank you for your time.")
+        add_opted_out(ctx.author.id)
+    
+    elif collect == "delete":
+        await ctx.send("Your usage data for this server has been deleted.")
+        remove_usage_data(ctx.guild.id, ctx.author.id)
 
 
 @dis.slash_command(
@@ -208,9 +232,11 @@ async def setup_config(
 
 
 @dis.context_menu("Convert 📸", dis.CommandTypes.MESSAGE)
-async def convert_video(ctx: dis.InteractionContext):
+async def menu_convert_video(ctx: dis.InteractionContext):
+    await ctx.defer()
     link = check_for_link(ctx.target.content)
     if not link:
+        await ctx.send("I don't see a link in that message.", ephemeral=True)
         return
     config = get_guild_config(ctx.guild.id)
 
@@ -238,10 +264,11 @@ async def convert_video(ctx: dis.InteractionContext):
     )
     if config.suppress_origin_embed:
         await ctx.target.suppress_embeds()
-    await ctx.send(
+    sent_msg = await ctx.send(
         short_url + f" | [Origin]({ctx.target.jump_url})",
         components=[more_info_btn, delete_msg_btn],
     )
+    insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
 
 
 @dis.listen(dis.events.MessageCreate)
@@ -280,17 +307,23 @@ async def on_message_create(event: dis.events.MessageCreate):
         emoji="🗑️",
         custom_id=f"delete{event.message.author.id}",
     )
+    
     if config.delete_origin:
-        await event.message.channel.send(
+        sent_msg = await event.message.channel.send(
             short_url + f" | From: {event.message.author.mention}",
             components=[more_info_btn, delete_msg_btn],
             allowed_mentions=dis.AllowedMentions.none(),
         )
         await event.message.delete()
-        return
     elif config.suppress_origin_embed:
         await event.message.suppress_embeds()
-    await event.message.reply(short_url, components=[more_info_btn, delete_msg_btn])
+        await bot.fetch_channel(event.message._channel_id)
+        sent_msg = await event.message.reply(short_url, components=[more_info_btn, delete_msg_btn])
+    else:
+        await bot.fetch_channel(event.message._channel_id)
+        sent_msg = await event.message.reply(short_url, components=[more_info_btn, delete_msg_btn])
+    
+    insert_usage_data(event.message.guild.id, event.message.author.id, video_id, sent_msg.id)
 
 
 @dis.listen(dis.events.Button)
@@ -359,14 +392,14 @@ async def on_button_click(event: dis.events.Button):
         )
         if entry := c.fetchone():
             if int(entry["timestamp"]) < trunc(
-                datetime.datetime.timestamp(datetime.datetime.now())
-            ) or not ctx.message.content.endswith(entry["tiktoker_slug"]):
+                datetime.timestamp(datetime.now())
+            ) or entry["tiktoker_slug"] not in ctx.message.content:
                 await ctx.send(embed=embed)
                 short_url = await get_short_url(
                     direct_download, data["aweme_detail"]["aweme_id"]
                 )
                 edit_me = ctx.channel.get_message(ctx.message.id)
-                await edit_me.edit(content=short_url)
+                await edit_me.edit(content=ctx.message.content.replace(ctx.message.content[23:27], entry["tiktoker_slug"]))
                 return
             else:
                 await ctx.send(embed=embed, components=[download_btn, audio_btn])
@@ -434,10 +467,8 @@ async def get_short_url(url: str, video_id: int) -> str:
 
     c.execute("SELECT * FROM cache WHERE video_id=?", (video_id,))
     if data := c.fetchone():
-        if int(data["timestamp"]) > trunc(
-            datetime.datetime.timestamp(datetime.datetime.now())
-        ):
-            return "https://tiktoker.win/" + data["tiktoker_slug"]
+        if int(data["timestamp"]) > trunc(datetime.now().timestamp()):
+            return "https://v.tiktoker.win/" + data["tiktoker_slug"]
 
     async with aiohttp.ClientSession() as session:
         split_url = urlsplit(url)
@@ -445,7 +476,7 @@ async def get_short_url(url: str, video_id: int) -> str:
             params_dict = parse_qs(split_url.query)
             url = f"{split_url.scheme}://{split_url.netloc}/aweme/v1/play/?video_id={params_dict['video_id'][0]}"
         async with session.post(
-            "https://tiktoker.win/links",
+            "https://v.tiktoker.win/links",
             json={"url": url},
             headers={
                 "Authorization": get_key(".env", "TIKTOKER_API_KEY")
@@ -457,8 +488,8 @@ async def get_short_url(url: str, video_id: int) -> str:
                 (
                     video_id,
                     trunc(
-                        datetime.datetime.timestamp(
-                            datetime.datetime.now() + datetime.timedelta(days=3)
+                        datetime.timestamp(
+                            datetime.now() + timedelta(days=3)
                         )
                     ),  # NOTE: Will expire in 3 days
                     data.get("slug"),
@@ -649,13 +680,27 @@ def insert_usage_data(guild_id: int, user_id: int, video_id: int, message_id: in
         message_id: The message id with the video.
     """
 
+    if get_opted_out(user_id): # weirdos
+        user_id = None
+        message_id = None
 
     c.execute(
-        "INSERT INTO usage_data VALUES (?, ?, ?, ?)",
-        (guild_id, user_id, video_id, message_id),
+        "INSERT INTO usage_data VALUES (?, ?, ?, ?, ?)",
+        (guild_id, user_id, video_id, message_id, trunc(datetime.now().timestamp())),
     )
     conn.commit()
 
+def add_opted_out(user_id: int) -> None:
+    c.execute("INSERT INTO opted_out VALUES (?)", (user_id,))
+    conn.commit()
+
+def remove_opted_out(user_id: int) -> None:
+    c.execute("DELETE FROM opted_out WHERE user_id=?", (user_id,))
+    conn.commit()
+
+def remove_usage_data(guild_id: int, user_id: int) -> None:
+    c.execute("UPDATE usage_data SET message_id=NULL, user_id=NULL WHERE guild_id=? AND user_id=?", (guild_id, user_id))
+    conn.commit()
 
 def get_opted_out(user_id: int) -> bool:
     c.execute("SELECT user_id FROM opted_out WHERE user_id=?", (user_id,))

@@ -140,7 +140,7 @@ class Description(TikTokObject):
         if raw := data.get("desc"):
             data["raw"] = raw
         data["cleaned"] = clean_desc(data.get("text_extra"), raw)
-        data["tags"] = [f"{tag['hashtag_name']}" for tag in data.get("text_extra")]
+        data["tags"] = [f"{tag['hashtag_name']}" for tag in data.get("text_extra") if tag.get("type") == 1]
         return data
 
 

@@ -1,18 +1,17 @@
-from datetime import datetime, timedelta
-from enum import Enum
-from math import trunc
-from typing import List, Optional
-from attr import define
-import attr
-import dis_snek as dis
-import aiohttp
 import re
-from urllib.parse import urlsplit, parse_qs
 import sqlite3
+from datetime import datetime, timedelta
+from math import trunc
+from typing import Optional
+from urllib.parse import parse_qs, urlsplit
 
+import aiohttp
+import dis_snek as dis
+from dis_snek.ext.paginators import Paginator
 from dotenv import get_key
 
-from dis_snek.ext.paginators import Paginator
+from models import *
+from tiktok import get_tiktok
 
 bot = dis.Snake(
     intents=dis.Intents.MESSAGES | dis.Intents.DEFAULT,
@@ -44,59 +43,6 @@ c.execute(
 c.execute("CREATE TABLE IF NOT EXISTS opted_out (user_id INTEGER PRIMARY KEY)")
 
 
-@define
-class GuildConfig:
-    guild_id: int = attr.ib(default=None)
-    auto_embed: bool = attr.ib(
-        default=True, validator=attr.validators.instance_of(bool), converter=bool
-    )
-    """ Automaticly embeds the sent link """
-    delete_origin: bool = attr.ib(
-        default=False, validator=attr.validators.instance_of(bool), converter=bool
-    )
-    """ Deletes the message that sent the link """
-    suppress_origin_embed: bool = attr.ib(
-        default=True, validator=attr.validators.instance_of(bool), converter=bool
-    )
-    """ Suppresses the embed of the origin message """
-
-    @classmethod
-    def from_dict(cls, data: dict) -> "GuildConfig":
-        return cls(**data)
-
-
-@define
-class LinkData:
-    """
-    A class to store the link data.
-    """
-
-    type: int = attr.ib()
-    id: int = attr.ib()
-    url: str = attr.ib()
-
-    @classmethod
-    def from_list(cls, link: List[int | str | str]) -> "LinkData":
-        """
-        Creates a LinkData from a list.
-
-        args:
-            link: The list to create the data from.
-
-        returns:
-            A LinkData object.
-        """
-        if len(link) != 3:
-            raise ValueError("Invalid link")
-        return cls(*link)
-
-
-class VideoIdType(Enum):
-    LONG = 0  # https://www.tiktok.com/@placeholder/video/7068971038273423621
-    SHORT = 1  # https://vm.tiktok.com/PTPdh1wVay/
-    MEDIUM = 2  # https://m.tiktok.com/v/7068971038273423621.html
-
-
 @dis.slash_command("help", "All the help you need")
 async def help(ctx: dis.InteractionContext):
     embeds = [
@@ -105,28 +51,42 @@ async def help(ctx: dis.InteractionContext):
             description="Tiktoker is a bot that allows you to send Tiktok videos to your discord server.",
             color="#00FFF0",
             fields=[
-                dis.EmbedField("Help Menu", "Below is some buttons that will guide you through some features of the bot.").to_dict(),
-            ]
+                dis.EmbedField(
+                    "Help Menu",
+                    "Below is some buttons that will guide you through some features of the bot.",
+                ).to_dict(),
+            ],
         ),
         dis.Embed(
             "Configuration",
             "Here are some configuration options for the bot.\nThese can be changed by using the `/config <option> <vaulue>` command.\nExample: `/config delete_origin:True`\nTo view the current configuration, use `/config` without any arguments.",
             color="#00FFF0",
             fields=[
-                dis.EmbedField("Auto Embed", "When enabled, the bot will automatically embed the Tiktok link that is sent.").to_dict(),
-                dis.EmbedField("Delete Origin", "When enabled and _Auto Embed_ is enabled, the bot will delete the message that sent the Tiktok link.").to_dict(),
-                dis.EmbedField("Suppress Origin Embed", "Toggles the suppress origin embed feature.").to_dict(),
-            ]
+                dis.EmbedField(
+                    "Auto Embed",
+                    "When enabled, the bot will automatically embed the Tiktok link that is sent.",
+                ).to_dict(),
+                dis.EmbedField(
+                    "Delete Origin",
+                    "When enabled and _Auto Embed_ is enabled, the bot will delete the message that sent the Tiktok link.",
+                ).to_dict(),
+                dis.EmbedField(
+                    "Suppress Origin Embed",
+                    "Toggles the suppress origin embed feature.",
+                ).to_dict(),
+            ],
         ),
         dis.Embed(
             "Commands",
             "Here are some commands that can be used to interact with the bot.",
             color="#00FFF0",
             fields=[
-                dis.EmbedField("Convert 📸", "Right click a message then go to *`Apps > Convert 📸`*. \nMeant for when *Auto Embed* is disabled in the server's config.").to_dict(),
-            ]
+                dis.EmbedField(
+                    "Convert 📸",
+                    "Right click a message then go to *`Apps > Convert 📸`*. \nMeant for when *Auto Embed* is disabled in the server's config.",
+                ).to_dict(),
+            ],
         ),
-
     ]
 
     paginator = Paginator.create_from_embeds(bot, *embeds, timeout=20)
@@ -137,29 +97,57 @@ async def help(ctx: dis.InteractionContext):
     paginator.back_button_emoji = "<:back:948778200257941576>"
 
     await paginator.send(ctx)
-    
-@dis.slash_command(name="privacy", description="Inform yourself on some of the data we collect.", sub_cmd_name="policy", sub_cmd_description="Review our Privacy Policy.")
+
+
+@dis.slash_command(
+    name="privacy",
+    description="Inform yourself on some of the data we collect.",
+    sub_cmd_name="policy",
+    sub_cmd_description="Review our Privacy Policy.",
+)
 async def privacy_policy(ctx: dis.InteractionContext):
     await ctx.defer(True)
-    await ctx.send("This is a placeholder") #TODO: Make a privacy policy
+    await ctx.send("Dont")  # TODO: Make a privacy policy
 
-@dis.slash_command(name="privacy", description="Inform yourself on some of the data we collect.", group_name="usage", sub_cmd_name="data", sub_cmd_description="Choose what we can collect about you.")
-@dis.slash_option("collect", "Save usage data?", dis.OptionTypes.STRING, choices=[dis.SlashCommandChoice("yes", "yes"), dis.SlashCommandChoice("no", "no"), dis.SlashCommandChoice("delete", "delete")])
+
+@dis.slash_command(
+    name="privacy",
+    description="Inform yourself on some of the data we collect.",
+    group_name="usage",
+    sub_cmd_name="data",
+    sub_cmd_description="Choose what we can collect about you.",
+)
+@dis.slash_option(
+    "collect",
+    "Save usage data?",
+    dis.OptionTypes.STRING,
+    choices=[
+        dis.SlashCommandChoice("yes", "yes"),
+        dis.SlashCommandChoice("no", "no"),
+        dis.SlashCommandChoice("delete", "delete"),
+    ],
+)
 async def privacy_options(ctx: dis.InteractionContext, collect: str = None):
     await ctx.defer(True)
 
     if collect is None:
-        await ctx.send(f"You are currently: {'Opted Out' if get_opted_out(ctx.author.id) else 'Opted In'} \n\n**We take your privacy seriously.**\nYour data is not shared with the public. **Usage data is used to share statistics like total videos converted and total users.** \nPlease consider sharing your data with us if you want to help us improve the bot. \nYou can change this setting by using `/config collect:True` or `/config collect:False`. \n\nYou can also delete your usage data by using `/config collect:delete`.")
+        await ctx.send(
+            f"You are currently: {'Opted Out' if get_opted_out(ctx.author.id) else 'Opted In'} \n\n**We take your privacy seriously.**\nYour data is not shared with the public. **Usage data is used to share statistics like total videos converted and total users.** \nPlease consider sharing your data with us if you want to help us improve the bot. \nYou can change this setting by using `/config collect:True` or `/config collect:False`. \n\nYou can also delete your usage data by using `/config collect:delete`."
+        )
         return
 
     if collect == "yes":
-        await ctx.send("Thank you for sharing your data with us. Remember this is not shared with anyone.")
+        await ctx.send(
+            "Thank you for sharing your data with us. Remember this is not shared with anyone."
+        )
         remove_opted_out(ctx.author.id)
 
     elif collect == "no":
-        await ctx.send("You have opted out of usage data collection. Thank you for your time.")
+        await ctx.send(
+            "You have opted out of usage data collection. Thank you for your time."
+        )
         add_opted_out(ctx.author.id)
-    
+
     elif collect == "delete":
         await ctx.send("Your usage data for this server has been deleted.")
         remove_usage_data(ctx.guild.id, ctx.author.id)
@@ -244,20 +232,22 @@ async def menu_convert_video(ctx: dis.InteractionContext):
         video_id = await get_video_id(link.url)
     else:
         video_id = link.id
-    aweme = await get_aweme_data(video_id)
 
-    if not aweme.get("aweme_detail"):
-        if cached_url := get_short_url(video_id):
-            await ctx.send(f"The video is not available.\n This link may work if TikTok has not removed it from their API: <{cached_url}>")
-            return
-        else:
-            await ctx.send("The video is not available.")
-            return
+    try:
+        tiktok = await get_tiktok(video_id)
+    except Exception as e:
+        await ctx.send(f"Error: {e}", ephemeral=True)
+        return
 
-    direct_download = aweme["aweme_detail"]["video"]["play_addr"]["url_list"][
-        2
-    ]  # NOTE: Index 2 is the default CDN
-    short_url = await create_short_url(direct_download, video_id)
+    # if not aweme.get("aweme_detail"):
+    #     if cached_url := get_short_url(video_id):
+    #         await ctx.send(f"The video is not available.\n This link may work if TikTok has not removed it from their API: <{cached_url}>")
+    #         return
+    #     else:
+    #         await ctx.send("The video is not available.")
+    #         return
+
+    short_url = await create_short_url(tiktok.video.download_url, video_id)
 
     more_info_btn = dis.Button(
         dis.ButtonStyles.GRAY,
@@ -274,6 +264,44 @@ async def menu_convert_video(ctx: dis.InteractionContext):
         await ctx.target.suppress_embeds()
     sent_msg = await ctx.send(
         short_url + f" | [Origin]({ctx.target.jump_url})",
+        components=[more_info_btn, delete_msg_btn],
+    )
+    insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
+
+
+@dis.slash_command("tiktok", "Convert a tiktok link to a video.")
+@dis.slash_option("link", "The link to convert.", dis.OptionTypes.STRING, True)
+async def slash_tiktok(ctx: dis.InteractionContext, link: str):
+    link = check_for_link(link)
+    if not link:
+        await ctx.send("That doesn't seem to be a valid link.", ephemeral=True)
+        return
+
+    if link.type == VideoIdType.SHORT:
+        video_id = await get_video_id(link.url)
+    else:
+        video_id = link.id
+
+    try:
+        tiktok = await get_tiktok(video_id)
+    except Exception as e:
+        await ctx.send(f"Error: {e}", ephemeral=True)
+        return
+
+    short_url = await create_short_url(tiktok.video.download_url, video_id)
+    more_info_btn = dis.Button(
+        dis.ButtonStyles.GRAY,
+        "Info",
+        "🌐",
+        custom_id=f"v_id{video_id}",
+    )
+    delete_msg_btn = dis.Button(
+        dis.ButtonStyles.RED,
+        emoji="🗑️",
+        custom_id=f"delete{ctx.author.id}",
+    )
+    sent_msg = await ctx.send(
+        short_url,
         components=[more_info_btn, delete_msg_btn],
     )
     insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
@@ -297,14 +325,14 @@ async def on_message_create(event: dis.events.MessageCreate):
         video_id = await get_video_id(link.url)
     else:
         video_id = link.id
-    aweme = await get_aweme_data(video_id)
 
-    if not aweme.get("aweme_detail"):
+    try:
+        tiktok = await get_tiktok(video_id)
+    except Exception as e:
+        print(f"Error: {e}")
         return
-    direct_download = aweme["aweme_detail"]["video"]["play_addr"]["url_list"][
-        2
-    ]  # NOTE: Index 2 is the default CDN
-    short_url = await create_short_url(direct_download, video_id)
+
+    short_url = await create_short_url(tiktok.video.download_url, video_id)
 
     more_info_btn = dis.Button(
         dis.ButtonStyles.GRAY,
@@ -317,7 +345,7 @@ async def on_message_create(event: dis.events.MessageCreate):
         emoji="🗑️",
         custom_id=f"delete{event.message.author.id}",
     )
-    
+
     if config.delete_origin:
         sent_msg = await event.message.channel.send(
             short_url + f" | From: {event.message.author.mention}",
@@ -328,12 +356,18 @@ async def on_message_create(event: dis.events.MessageCreate):
     elif config.suppress_origin_embed:
         await event.message.suppress_embeds()
         await bot.fetch_channel(event.message._channel_id)
-        sent_msg = await event.message.reply(short_url, components=[more_info_btn, delete_msg_btn])
+        sent_msg = await event.message.reply(
+            short_url, components=[more_info_btn, delete_msg_btn]
+        )
     else:
         await bot.fetch_channel(event.message._channel_id)
-        sent_msg = await event.message.reply(short_url, components=[more_info_btn, delete_msg_btn])
-    
-    insert_usage_data(event.message.guild.id, event.message.author.id, video_id, sent_msg.id)
+        sent_msg = await event.message.reply(
+            short_url, components=[more_info_btn, delete_msg_btn]
+        )
+
+    insert_usage_data(
+        event.message.guild.id, event.message.author.id, video_id, sent_msg.id
+    )
 
 
 @dis.listen(dis.events.Button)
@@ -352,117 +386,107 @@ async def on_button_click(event: dis.events.Button):
             )
     elif ctx.custom_id.startswith("v_id"):
         await ctx.defer(ephemeral=True)
+        tiktok = await get_tiktok(int(ctx.custom_id[4:]))
 
-        data = await get_aweme_data(int(ctx.custom_id[4:]))
+        video = tiktok.video
+        author = tiktok.author
+        stats = tiktok.statistics
 
-        avatar = data["aweme_detail"]["author"]["avatar_thumb"]["url_list"][0]
-        nickname = data["aweme_detail"]["author"]["nickname"]
-        author_url = (
-            "https://www.tiktok.com/@" + data["aweme_detail"]["author"]["unique_id"]
+        embed = dis.Embed(
+            tiktok.description.cleaned[:256]
+            if tiktok.description.cleaned != ""
+            else None,
+            description=tiktok.share_url,
         )
-        play_count = data["aweme_detail"]["statistics"]["play_count"]
-        like_count = data["aweme_detail"]["statistics"]["digg_count"]
-        comment_count = data["aweme_detail"]["statistics"]["comment_count"]
-        share_count = data["aweme_detail"]["statistics"]["share_count"]
-        download_count = data["aweme_detail"]["statistics"]["download_count"]
-        link_to_video = "https://m.tiktok.com/v/" + data["aweme_detail"]["aweme_id"]
-        origin_cover = data["aweme_detail"]["video"]["origin_cover"]["url_list"][0]
-        desc = data["aweme_detail"]["desc"]
 
-        embed = dis.Embed(desc[:256] if desc != "" else None, description=link_to_video)
-
-        embed.set_author(name=nickname, icon_url=avatar, url=author_url)
-        embed.set_thumbnail(url=origin_cover)
-        embed.add_field("Views 👁️", play_count, True)
-        embed.add_field("Likes ❤️", like_count, True)
-        embed.add_field("Comments 💬", comment_count, True)
-        embed.add_field("Shares 🔃", share_count, True)
-        embed.add_field("Downloads 📥", download_count, True)
-        embed.add_field(
-            "Created",
-            dis.Timestamp.fromtimestamp(data["aweme_detail"]["create_time"]),
-            True,
+        embed.set_author(name=author.nickname, icon_url=author.avatar, url=author.url)
+        embed.set_thumbnail(url=video.cover_url)
+        embed.add_field("Views 👁️", stats.play_count, True)
+        embed.add_field("Likes ❤️", stats.like_count, True)
+        embed.add_field("Comments 💬", stats.comment_count, True)
+        embed.add_field("Shares 🔃", stats.share_count, True)
+        embed.add_field("Downloads 📥", stats.download_count, True)
+        embed.add_field("Created", tiktok.created, True)
+        download_btn = dis.Button(
+            dis.ButtonStyles.URL, "Download", url=video.download_url
         )
-        direct_download = data["aweme_detail"]["video"]["play_addr"]["url_list"][
-            2
-        ]  # NOTE: Index 2 is the default CDN
-
-        download_btn = dis.Button(dis.ButtonStyles.URL, "Download", url=direct_download)
+        if len(tiktok.description.tags) > 0:
+            embed.add_field(
+                "Tags 🔖",
+                ", ".join(
+                    [
+                        f"[`#{tag}`](https://www.tiktok.com/tag/{tag})"
+                        for tag in tiktok.description.tags
+                    ]
+                ),
+                True,
+            )
 
         audio_btn = dis.Button(
             dis.ButtonStyles.GRAY,
             "Audio",
             emoji="🎵",
-            custom_id=f"m_id{data['aweme_detail']['aweme_id']}",
+            custom_id=f"m_id{tiktok.id}",
         )
 
         c.execute(
             "SELECT * FROM cache WHERE video_id = ?",
-            (data["aweme_detail"]["aweme_id"],),
+            (tiktok.id,),
         )
         if entry := c.fetchone():
-            if int(entry["timestamp"]) < trunc(
-                datetime.timestamp(datetime.now())
-            ) or entry["tiktoker_slug"] not in ctx.message.content:
+            if (
+                int(entry["timestamp"]) < trunc(datetime.timestamp(datetime.now()))
+                or entry["tiktoker_slug"] not in ctx.message.content
+            ):
                 await ctx.send(embed=embed)
-                short_url = await create_short_url(
-                    direct_download, data["aweme_detail"]["aweme_id"]
-                )
+                short_url = await create_short_url(video.download_url, tiktok.id)
                 edit_me = ctx.channel.get_message(ctx.message.id)
-                await edit_me.edit(content=ctx.message.content.replace(ctx.message.content[23:27], entry["tiktoker_slug"]))
+                await edit_me.edit(
+                    content=ctx.message.content.replace(
+                        ctx.message.content[23:27], entry["tiktoker_slug"]
+                    )
+                )
                 return
             else:
                 await ctx.send(embed=embed, components=[download_btn, audio_btn])
         else:
             await ctx.send(embed=embed, components=[download_btn, audio_btn])
-            short_url = await create_short_url(
-                direct_download, data["aweme_detail"]["aweme_id"]
-            )
+            short_url = await create_short_url(video.download_url, tiktok.id)
             edit_me = ctx.channel.get_message(ctx.message.id)
             await edit_me.edit(content=short_url)
             return
 
     elif ctx.custom_id.startswith("m_id"):  # TODO: Use aweme instead of music
         await ctx.defer(ephemeral=True)
-        data = await get_aweme_data(int(ctx.custom_id[4:]))
-        if not data or not data.get("aweme_detail"):
+
+        try:
+            tiktok = await get_tiktok(int(ctx.custom_id[4:]))
+        except Exception as e:
             await ctx.send("Seems this audio has been deleted/taken down.")
+            print(f"Error: {e}")
             return
-        music_data = data["aweme_detail"]["music"]
-        play_link = music_data["play_url"]["url_list"][0]
-        author_name = music_data["author"]
-        if music_data["owner_handle"] != "":
-            author_url = f"https://www.tiktok.com/@{music_data['owner_handle']}"
-        else:
-            author_url = None
 
-        if music_data.get("avatar_medium"):
-            author_avatar = music_data["avatar_medium"]["url_list"][0]
-        else:
-            author_avatar = None
-        title = music_data["title"]
-
-        cover = music_data["cover_medium"]["url_list"][0]
-
+        music = tiktok.music
         embed = dis.Embed(
-            title=title,
-            url=f"https://www.tiktok.com/music/song-{music_data['id']}",
+            title=music.title,
+            url="https://www.tiktok.com/music/id-" + str(music.id),
         )
 
-        if extra_music_data := await get_music_data(music_data["id"]):
+        if extra_music_data := await get_music_data(music.id):
             video_count = extra_music_data["musicInfo"]["stats"]["videoCount"]
             embed.add_field(name="Video Count 📱", value=video_count, inline=False)
 
-        embed.set_author(name=author_name, url=author_url, icon_url=author_avatar)
-        embed.set_thumbnail(url=cover)
+        embed.set_author(
+            name=music.owner_nickname, url=music.owner_url, icon_url=music.avatar_url
+        )
+        embed.set_thumbnail(url=music.cover_url)
 
         await ctx.send(
             embed=embed,
             components=dis.Button(
-                dis.ButtonStyles.URL, url=play_link, label="Download"
+                dis.ButtonStyles.URL, url=music.play_url, label="Download"
             ),
         )
-
 
 
 async def create_short_url(url: str, video_id: int) -> str:
@@ -499,15 +523,14 @@ async def create_short_url(url: str, video_id: int) -> str:
                 (
                     video_id,
                     trunc(
-                        datetime.timestamp(
-                            datetime.now() + timedelta(days=3)
-                        )
+                        datetime.timestamp(datetime.now() + timedelta(days=3))
                     ),  # NOTE: Will expire in 3 days
                     data.get("slug"),
                 ),
             )
             conn.commit()
             return data.get("shortened")
+
 
 def get_short_url(video_id: int) -> Optional[str]:
     c.execute("SELECT * FROM cache WHERE video_id=?", (video_id,))
@@ -517,6 +540,7 @@ def get_short_url(video_id: int) -> Optional[str]:
         ):
             return "https://tiktoker.win/" + data["tiktoker_slug"]
     return None
+
 
 async def get_video_id(url: str) -> int:
     """
@@ -535,21 +559,21 @@ async def get_video_id(url: str) -> int:
                     return link.id
 
 
-async def get_aweme_data(video_id: int = None) -> dict:
-    """Gets the video data
+# async def get_aweme_data(video_id: int = None) -> dict:
+#     """Gets the video data
 
-    args:
-        video_id: The video id.
+#     args:
+#         video_id: The video id.
 
-    returns:
-        The video data.
-    """
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(2)) as session:
-        async with session.get(
-            f"https://api2.musical.ly/aweme/v1/aweme/detail/?aweme_id={video_id}",
-            allow_redirects=False,
-        ) as response:
-            return await response.json()
+#     returns:
+#         The video data.
+#     """
+#     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(2)) as session:
+#         async with session.get(
+#             f"https://api2.musical.ly/aweme/v1/aweme/detail/?aweme_id={video_id}",
+#             allow_redirects=False,
+#         ) as response:
+#             return await response.json()
 
 
 async def get_music_data(music_id: int = None) -> Optional[dict]:
@@ -688,7 +712,10 @@ def edit_guild_config(config: "GuildConfig") -> "GuildConfig":
     conn.commit()
     return config
 
-def insert_usage_data(guild_id: int, user_id: int, video_id: int, message_id: int) -> None:
+
+def insert_usage_data(
+    guild_id: int, user_id: int, video_id: int, message_id: int
+) -> None:
     """
     Inserts usage data.
 
@@ -699,7 +726,7 @@ def insert_usage_data(guild_id: int, user_id: int, video_id: int, message_id: in
         message_id: The message id with the video.
     """
 
-    if get_opted_out(user_id): # weirdos
+    if get_opted_out(user_id):  # weirdos
         user_id = None
         message_id = None
 
@@ -709,17 +736,24 @@ def insert_usage_data(guild_id: int, user_id: int, video_id: int, message_id: in
     )
     conn.commit()
 
+
 def add_opted_out(user_id: int) -> None:
     c.execute("INSERT INTO opted_out VALUES (?)", (user_id,))
     conn.commit()
+
 
 def remove_opted_out(user_id: int) -> None:
     c.execute("DELETE FROM opted_out WHERE user_id=?", (user_id,))
     conn.commit()
 
+
 def remove_usage_data(guild_id: int, user_id: int) -> None:
-    c.execute("UPDATE usage_data SET message_id=NULL, user_id=NULL WHERE guild_id=? AND user_id=?", (guild_id, user_id))
+    c.execute(
+        "UPDATE usage_data SET message_id=NULL, user_id=NULL WHERE guild_id=? AND user_id=?",
+        (guild_id, user_id),
+    )
     conn.commit()
+
 
 def get_opted_out(user_id: int) -> bool:
     c.execute("SELECT user_id FROM opted_out WHERE user_id=?", (user_id,))

@@ -39,11 +39,13 @@ class TikTokObject(dis.DictSerializationMixin):
 class Video(TikTokObject):
     download_url: str = attr.ib()
     cover_url: str = attr.ib()
+    video_uri: str = attr.ib()
 
     @classmethod
     def _process_dict(cls, data: dict) -> dict:
         if play_addr := data.get("play_addr"):
             data["download_url"] = play_addr.get("url_list")[2]
+            data["video_uri"] = play_addr.get("uri")
         if cover_addr := data.get("cover"):
             data["cover_url"] = cover_addr.get("url_list")[0]
 
@@ -130,17 +132,21 @@ class Author(TikTokObject):
 
 @define
 class Description(TikTokObject):
-    raw: str = attr.ib()
-    cleaned: str = attr.ib()
+    raw: Optional[str] = attr.ib(default=None)
+    cleaned: Optional[str] = attr.ib(default=None)
     """ No #hashtags """
-    tags: List[str] = attr.ib()
+    tags: Optional[List[str]] = attr.ib(default=None)
 
     @classmethod
     def _process_dict(cls, data: dict) -> dict:
         if raw := data.get("desc"):
             data["raw"] = raw
         data["cleaned"] = clean_desc(data.get("text_extra"), raw)
-        data["tags"] = [f"{tag['hashtag_name']}" for tag in data.get("text_extra") if tag.get("type") == 1]
+        data["tags"] = [
+            f"{tag['hashtag_name']}"
+            for tag in data.get("text_extra")
+            if tag.get("type") == 1
+        ]
         return data
 
 

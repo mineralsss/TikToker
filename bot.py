@@ -1,9 +1,5 @@
 import re
-import sqlite3
-from datetime import datetime, timedelta
-from math import trunc
 from typing import Optional
-from urllib.parse import parse_qs, urlsplit
 
 import aiohttp
 import dis_snek as dis
@@ -13,34 +9,28 @@ from dotenv import get_key
 from models import *
 from tiktok import get_tiktok
 
+import motor
+from beanie import init_beanie
+
+from database import Config, UsageData, Shortener, OptedOut
+
+from base64 import urlsafe_b64encode
+from os import urandom
+
 bot = dis.Snake(
     intents=dis.Intents.MESSAGES | dis.Intents.DEFAULT,
     sync_interactions=True,
     delete_unused_application_cmds=False,
 )
 
-conn = sqlite3.connect("database.db")
 
-
-def dict_factory(cursor, row):  # NOTE: dict instead of tuple
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
-
-
-conn.row_factory = dict_factory
-c = conn.cursor()
-c.execute(
-    "CREATE TABLE IF NOT EXISTS cache (video_id INTEGER PRIMARY KEY, timestamp TEXT, tiktoker_slug TEXT)"
-)
-c.execute(
-    "CREATE TABLE IF NOT EXISTS config (guild_id INTEGER PRIMARY KEY, auto_embed BOOLEAN DEFAULT 1, delete_origin BOOLEAN DEFAULT 0, suppress_origin_embed BOOLEAN DEFAULT 1)"
-)
-c.execute(
-    "CREATE TABLE IF NOT EXISTS usage_data (guild_id INTEGER, user_id INTEGER NULL, video_id INTEGER, message_id INTEGER NULL, timestamp INTEGER)"
-)
-c.execute("CREATE TABLE IF NOT EXISTS opted_out (user_id INTEGER PRIMARY KEY)")
+@dis.listen(dis.events.Startup)
+async def on_startup():
+    client = motor.motor_asyncio.AsyncIOMotorClient(get_key(".env", "MONGODB_URL"))
+    await init_beanie(
+        database=client.tiktoker,
+        document_models=[Config, UsageData, Shortener, OptedOut],
+    )
 
 
 @dis.slash_command("help", "All the help you need")
@@ -150,7 +140,7 @@ async def privacy_options(ctx: dis.InteractionContext, collect: str = None):
 
     elif collect == "delete":
         await ctx.send("Your usage data for this server has been deleted.")
-        remove_usage_data(ctx.guild.id, ctx.author.id)
+        await remove_usage_data(ctx.guild.id, ctx.author.id)
 
 
 @dis.slash_command(
@@ -180,7 +170,8 @@ async def setup_config(
     Sets up the config for the guild.
     """
     guild_id = ctx.guild.id
-    config = get_guild_config(guild_id)
+    await ctx.defer()
+    config = await get_guild_config(guild_id)
     if auto_embed is None and delete_origin is None and suppress_origin_embed is None:
         embed = dis.Embed(
             "Current Config", "To change a setting, use `/config <setting> <value>`"
@@ -198,13 +189,13 @@ async def setup_config(
         return
 
     if auto_embed is not None:
-        config.auto_embed = auto_embed
+        await config.set({"auto_embed": auto_embed})
     if delete_origin is not None:
-        config.delete_origin = delete_origin
+        await config.set({"delete_origin": delete_origin})
     if suppress_origin_embed is not None:
-        config.suppress_origin_embed = suppress_origin_embed
+        await config.set({"suppress_origin_embed": suppress_origin_embed})
 
-    edit_guild_config(config)
+    config = await get_guild_config(guild_id)
 
     embed = dis.Embed(
         "Current Config", "To change a setting, use `/config <setting> <value>`"
@@ -226,7 +217,7 @@ async def menu_convert_video(ctx: dis.InteractionContext):
     if not link:
         await ctx.send("I don't see a link in that message.", ephemeral=True)
         return
-    config = get_guild_config(ctx.guild.id)
+    config = await get_guild_config(ctx.guild.id)
 
     if link.type == VideoIdType.SHORT:
         video_id = await get_video_id(link.url)
@@ -239,15 +230,7 @@ async def menu_convert_video(ctx: dis.InteractionContext):
         await ctx.send(f"Error: {e}", ephemeral=True)
         return
 
-    # if not aweme.get("aweme_detail"):
-    #     if cached_url := get_short_url(video_id):
-    #         await ctx.send(f"The video is not available.\n This link may work if TikTok has not removed it from their API: <{cached_url}>")
-    #         return
-    #     else:
-    #         await ctx.send("The video is not available.")
-    #         return
-
-    short_url = await create_short_url(tiktok.video.download_url, video_id)
+    short_url = await create_short_url(tiktok.video.video_uri)
 
     more_info_btn = dis.Button(
         dis.ButtonStyles.GRAY,
@@ -266,7 +249,7 @@ async def menu_convert_video(ctx: dis.InteractionContext):
         short_url + f" | [Origin]({ctx.target.jump_url})",
         components=[more_info_btn, delete_msg_btn],
     )
-    insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
+    await insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
 
 
 @dis.slash_command("tiktok", "Convert a tiktok link to a video.")
@@ -288,7 +271,7 @@ async def slash_tiktok(ctx: dis.InteractionContext, link: str):
         await ctx.send(f"Error: {e}", ephemeral=True)
         return
 
-    short_url = await create_short_url(tiktok.video.download_url, video_id)
+    short_url = await create_short_url(tiktok.video.video_uri)
     more_info_btn = dis.Button(
         dis.ButtonStyles.GRAY,
         "Info",
@@ -304,7 +287,7 @@ async def slash_tiktok(ctx: dis.InteractionContext, link: str):
         short_url,
         components=[more_info_btn, delete_msg_btn],
     )
-    insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
+    await insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
 
 
 @dis.listen(dis.events.MessageCreate)
@@ -316,7 +299,7 @@ async def on_message_create(event: dis.events.MessageCreate):
     if not link:
         return
 
-    config = get_guild_config(event.message.guild.id)
+    config = await get_guild_config(event.message.guild.id)
 
     if not config.auto_embed:
         return
@@ -332,7 +315,7 @@ async def on_message_create(event: dis.events.MessageCreate):
         print(f"Error: {e}")
         return
 
-    short_url = await create_short_url(tiktok.video.download_url, video_id)
+    short_url = await create_short_url(tiktok.video.video_uri)
 
     more_info_btn = dis.Button(
         dis.ButtonStyles.GRAY,
@@ -365,7 +348,7 @@ async def on_message_create(event: dis.events.MessageCreate):
             short_url, components=[more_info_btn, delete_msg_btn]
         )
 
-    insert_usage_data(
+    await insert_usage_data(
         event.message.guild.id, event.message.author.id, video_id, sent_msg.id
     )
 
@@ -429,32 +412,11 @@ async def on_button_click(event: dis.events.Button):
             custom_id=f"m_id{tiktok.id}",
         )
 
-        c.execute(
-            "SELECT * FROM cache WHERE video_id = ?",
-            (tiktok.id,),
-        )
-        if entry := c.fetchone():
-            if (
-                int(entry["timestamp"]) < trunc(datetime.timestamp(datetime.now()))
-                or entry["tiktoker_slug"] not in ctx.message.content
-            ):
-                await ctx.send(embed=embed)
-                short_url = await create_short_url(video.download_url, tiktok.id)
-                edit_me = ctx.channel.get_message(ctx.message.id)
-                await edit_me.edit(
-                    content=ctx.message.content.replace(
-                        ctx.message.content[23:27], entry["tiktoker_slug"]
-                    )
-                )
-                return
-            else:
-                await ctx.send(embed=embed, components=[download_btn, audio_btn])
-        else:
-            await ctx.send(embed=embed, components=[download_btn, audio_btn])
-            short_url = await create_short_url(video.download_url, tiktok.id)
-            edit_me = ctx.channel.get_message(ctx.message.id)
-            await edit_me.edit(content=short_url)
-            return
+        await ctx.send(embed=embed, components=[download_btn, audio_btn])
+        short_url = await create_short_url(video.video_uri)
+        edit_me = ctx.channel.get_message(ctx.message.id)
+        await edit_me.edit(content=short_url)
+        return
 
     elif ctx.custom_id.startswith("m_id"):  # TODO: Use aweme instead of music
         await ctx.defer(ephemeral=True)
@@ -489,57 +451,32 @@ async def on_button_click(event: dis.events.Button):
         )
 
 
-async def create_short_url(url: str, video_id: int) -> str:
+async def create_short_url(video_uri: str) -> str:
     """
     Shortens a url if not in cache.
 
     args:
-        url: The url to shorten.
+        video_uri: The uri of the video.
 
     returns:
         The shortened url.
     """
 
-    c.execute("SELECT * FROM cache WHERE video_id=?", (video_id,))
-    if data := c.fetchone():
-        if int(data["timestamp"]) > trunc(datetime.now().timestamp()):
-            return "https://v.tiktoker.win/" + data["tiktoker_slug"]
+    if existing_entry := await Shortener.find_one({"video_uri": video_uri}):
+        return existing_entry.shortened_url
 
-    async with aiohttp.ClientSession() as session:
-        split_url = urlsplit(url)
-        if split_url.path == "/aweme/v1/play/":  # NOTE: This is to save some bytes lol
-            params_dict = parse_qs(split_url.query)
-            url = f"{split_url.scheme}://{split_url.netloc}/aweme/v1/play/?video_id={params_dict['video_id'][0]}"
-        async with session.post(
-            "https://v.tiktoker.win/links",
-            json={"url": url},
-            headers={
-                "Authorization": get_key(".env", "TIKTOKER_API_KEY")
-            },  # TODO: Make this an env variable
-        ) as response:
-            data = await response.json()
-            c.execute(
-                "REPLACE INTO cache VALUES (?, ?, ?)",
-                (
-                    video_id,
-                    trunc(
-                        datetime.timestamp(datetime.now() + timedelta(days=3))
-                    ),  # NOTE: Will expire in 3 days
-                    data.get("slug"),
-                ),
-            )
-            conn.commit()
-            return data.get("shortened")
+    slug = urlsafe_b64encode(urandom(6)).decode()
+    while len(await Shortener.find({"slug": slug}).to_list()) > 0:
+        print("Note: slug collision, regenerating")
+        slug = urlsafe_b64encode(urandom(6)).decode()
 
-
-def get_short_url(video_id: int) -> Optional[str]:
-    c.execute("SELECT * FROM cache WHERE video_id=?", (video_id,))
-    if data := c.fetchone():
-        if int(data["timestamp"]) > trunc(
-            datetime.datetime.timestamp(datetime.datetime.now())
-        ):
-            return "https://tiktoker.win/" + data["tiktoker_slug"]
-    return None
+    shortener = Shortener(
+        video_uri=video_uri,
+        slug=slug,
+        shortened_url=f"https://m.tiktoker.win/{slug}",
+    )
+    await shortener.insert()
+    return shortener.shortened_url
 
 
 async def get_video_id(url: str) -> int:
@@ -557,23 +494,6 @@ async def get_video_id(url: str) -> int:
             if location := response.headers.get("Location"):
                 if link := check_for_link(location):
                     return link.id
-
-
-# async def get_aweme_data(video_id: int = None) -> dict:
-#     """Gets the video data
-
-#     args:
-#         video_id: The video id.
-
-#     returns:
-#         The video data.
-#     """
-#     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(2)) as session:
-#         async with session.get(
-#             f"https://api2.musical.ly/aweme/v1/aweme/detail/?aweme_id={video_id}",
-#             allow_redirects=False,
-#         ) as response:
-#             return await response.json()
 
 
 async def get_music_data(music_id: int = None) -> Optional[dict]:
@@ -667,7 +587,7 @@ def check_for_link(content: str) -> Optional["LinkData"]:
     return None
 
 
-def get_guild_config(guild_id: int) -> "GuildConfig":
+async def get_guild_config(guild_id: int) -> "Config":
     """
     Gets the guild config.
 
@@ -677,43 +597,22 @@ def get_guild_config(guild_id: int) -> "GuildConfig":
     returns:
         The guild config.
     """
-    c.execute("SELECT * FROM config WHERE guild_id=?", (guild_id,))
-    if entry := c.fetchone():
-        return GuildConfig.from_dict(entry)
+    if config := await Config.find_one({"guild_id": guild_id}):
+        return config
     else:
-        return insert_guild_config(GuildConfig(guild_id))
+        new_config = Config(guild_id=guild_id)
+        await new_config.insert()
+        return new_config
 
 
-def insert_guild_config(config: "GuildConfig" = GuildConfig) -> "GuildConfig":
-    c.execute(
-        "INSERT INTO config VALUES (?, ?, ?, ?)",
-        (
-            config.guild_id,
-            config.auto_embed,
-            config.delete_origin,
-            config.suppress_origin_embed,
-        ),
-    )
-    conn.commit()
-    return config
+async def edit_guild_config(guild_id: int, **kwargs) -> "Config":
+    config = await get_guild_config(guild_id)
+    for key, value in kwargs.items():
+        await config.update({key: value})
+    return await get_guild_config(guild_id)
 
 
-def edit_guild_config(config: "GuildConfig") -> "GuildConfig":
-    get_guild_config(config.guild_id)
-    c.execute(
-        "UPDATE config SET auto_embed=?, delete_origin=?, suppress_origin_embed=? WHERE guild_id=?",
-        (
-            config.auto_embed,
-            config.delete_origin,
-            config.suppress_origin_embed,
-            config.guild_id,
-        ),
-    )
-    conn.commit()
-    return config
-
-
-def insert_usage_data(
+async def insert_usage_data(
     guild_id: int, user_id: int, video_id: int, message_id: int
 ) -> None:
     """
@@ -726,38 +625,30 @@ def insert_usage_data(
         message_id: The message id with the video.
     """
 
-    if get_opted_out(user_id):  # weirdos
+    if await get_opted_out(user_id):  # weirdos
         user_id = None
         message_id = None
 
-    c.execute(
-        "INSERT INTO usage_data VALUES (?, ?, ?, ?, ?)",
-        (guild_id, user_id, video_id, message_id, trunc(datetime.now().timestamp())),
-    )
-    conn.commit()
+    await UsageData(
+        guild_id=guild_id, user_id=user_id, video_id=video_id, message_id=message_id
+    ).insert()
 
 
-def add_opted_out(user_id: int) -> None:
-    c.execute("INSERT INTO opted_out VALUES (?)", (user_id,))
-    conn.commit()
+async def add_opted_out(user_id: int) -> None:
+    await OptedOut({user_id: True}).insert()
 
 
-def remove_opted_out(user_id: int) -> None:
-    c.execute("DELETE FROM opted_out WHERE user_id=?", (user_id,))
-    conn.commit()
+async def remove_opted_out(user_id: int) -> None:
+    await OptedOut.delete({user_id: True})
 
 
-def remove_usage_data(guild_id: int, user_id: int) -> None:
-    c.execute(
-        "UPDATE usage_data SET message_id=NULL, user_id=NULL WHERE guild_id=? AND user_id=?",
-        (guild_id, user_id),
-    )
-    conn.commit()
+async def remove_usage_data(guild_id: int, user_id: int) -> None:
+    return # TODO: remove usage data
+    data = UsageData.find_all({guild_id: guild_id, user_id: user_id})
 
 
-def get_opted_out(user_id: int) -> bool:
-    c.execute("SELECT user_id FROM opted_out WHERE user_id=?", (user_id,))
-    if opted_out := c.fetchone():
+async def get_opted_out(user_id: int) -> bool:
+    if opted_out := await OptedOut.find_one({"user_id": user_id}):
         return True
     else:
         return False

@@ -130,7 +130,7 @@ async def privacy_options(ctx: dis.InteractionContext, collect: str = None):
         await ctx.send(
             "Thank you for sharing your data with us. Remember this is not shared with anyone."
         )
-        remove_opted_out(ctx.author.id)
+        await remove_opted_out(ctx.author.id)
 
     elif collect == "no":
         await ctx.send(

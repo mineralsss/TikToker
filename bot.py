@@ -189,13 +189,13 @@ async def setup_config(
         return
 
     if auto_embed is not None:
-        await config.set({"auto_embed": auto_embed})
+        config.auto_embed = auto_embed
     if delete_origin is not None:
-        await config.set({"delete_origin": delete_origin})
+        config.delete_origin = delete_origin
     if suppress_origin_embed is not None:
-        await config.set({"suppress_origin_embed": suppress_origin_embed})
+        config.suppress_origin_embed = suppress_origin_embed
 
-    config = await get_guild_config(guild_id)
+    await config.save()
 
     embed = dis.Embed(
         "Current Config", "To change a setting, use `/config <setting> <value>`"
@@ -640,7 +640,7 @@ async def remove_opted_out(user_id: int) -> None:
 
 
 async def remove_usage_data(guild_id: int, user_id: int) -> None:
-    return # TODO: remove usage data
+    return  # TODO: remove usage data
     data = UsageData.find_all({guild_id: guild_id, user_id: user_id})
 
 

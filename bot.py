@@ -413,9 +413,6 @@ async def on_button_click(event: dis.events.Button):
         )
 
         await ctx.send(embed=embed, components=[download_btn, audio_btn])
-        short_url = await create_short_url(video.video_uri)
-        edit_me = ctx.channel.get_message(ctx.message.id)
-        await edit_me.edit(content=short_url)
         return
 
     elif ctx.custom_id.startswith("m_id"):  # TODO: Use aweme instead of music

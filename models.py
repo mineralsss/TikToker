@@ -6,23 +6,6 @@ from dis_snek import DictSerializationMixin
 
 
 @define
-class GuildConfig(DictSerializationMixin):
-    guild_id: int = attr.ib(default=None)
-    auto_embed: bool = attr.ib(
-        default=True, validator=attr.validators.instance_of(bool), converter=bool
-    )
-    """ Automaticly embeds the sent link """
-    delete_origin: bool = attr.ib(
-        default=False, validator=attr.validators.instance_of(bool), converter=bool
-    )
-    """ Deletes the message that sent the link """
-    suppress_origin_embed: bool = attr.ib(
-        default=True, validator=attr.validators.instance_of(bool), converter=bool
-    )
-    """ Suppresses the embed of the origin message """
-
-
-@define
 class LinkData:
     """
     A class to store the link data.

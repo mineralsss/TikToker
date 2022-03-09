@@ -136,7 +136,7 @@ async def privacy_options(ctx: dis.InteractionContext, collect: str = None):
         await ctx.send(
             "You have opted out of usage data collection. Thank you for your time."
         )
-        add_opted_out(ctx.author.id)
+        await add_opted_out(ctx.author.id)
 
     elif collect == "delete":
         await ctx.send("Your usage data for this server has been deleted.")

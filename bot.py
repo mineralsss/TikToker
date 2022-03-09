@@ -169,6 +169,10 @@ async def setup_config(
     """
     Sets up the config for the guild.
     """
+    if not ctx.author.has_permission(dis.Permissions.MANAGE_GUILD | dis.Permissions.ADMINISTRATOR):
+        await ctx.send("You do not have permission to use this command. Reason: `Missing Manage Server Permission`", ephemeral=True)
+        return
+
     guild_id = ctx.guild.id
     await ctx.defer()
     config = await get_guild_config(guild_id)
@@ -335,7 +339,10 @@ async def on_message_create(event: dis.events.MessageCreate):
             components=[more_info_btn, delete_msg_btn],
             allowed_mentions=dis.AllowedMentions.none(),
         )
-        await event.message.delete()
+        try:
+            await event.message.delete()
+        except dis.errors.NotFound:
+            pass
     elif config.suppress_origin_embed:
         await event.message.suppress_embeds()
         await bot.fetch_channel(event.message._channel_id)

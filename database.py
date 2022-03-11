@@ -9,6 +9,7 @@ class Config(Document, dis.DictSerializationMixin):
     auto_embed: bool = True
     delete_origin: bool = False
     suppress_origin_embed: bool = True
+    language: str = "en"
 
 
 class UsageData(Document):

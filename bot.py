@@ -17,10 +17,16 @@ from database import Config, UsageData, Shortener, OptedOut
 from base64 import urlsafe_b64encode
 from os import urandom
 
+import logging
+
+
+from utils.translate import initilized_langs as _
+from utils.translate import language_names as lang_names
+
 bot = dis.Snake(
     intents=dis.Intents.MESSAGES | dis.Intents.DEFAULT,
     sync_interactions=True,
-    delete_unused_application_cmds=False,
+    delete_unused_application_cmds=True,
 )
 
 
@@ -28,52 +34,77 @@ bot = dis.Snake(
 async def on_startup():
     client = motor.motor_asyncio.AsyncIOMotorClient(get_key(".env", "MONGODB_URL"))
     await init_beanie(
-        database=client.tiktoker,
+        database=client.tiktoker_dev,
         document_models=[Config, UsageData, Shortener, OptedOut],
     )
 
 
 @dis.slash_command("help", "All the help you need")
 async def help(ctx: dis.InteractionContext):
+    config = await get_guild_config(ctx.guild.id)
+    print(config.language)
     embeds = [
         dis.Embed(
-            title="Tiktoker",
-            description="Tiktoker is a bot that allows you to send Tiktok videos to your discord server.",
+            title=_[config.language].gettext("What is TikToker?"),
+            description=_[config.language].gettext(
+                "Tiktoker is a bot that allows you to send playable TikTok videos to your Discord server."
+            ),
             color="#00FFF0",
             fields=[
                 dis.EmbedField(
-                    "Help Menu",
-                    "Below is some buttons that will guide you through some features of the bot.",
+                    _[config.language].gettext("Help Menu"),
+                    _[config.language].gettext(
+                        "Click the arrow buttons below to navigate the help menu."
+                    ),
                 ).to_dict(),
             ],
         ),
         dis.Embed(
-            "Configuration",
-            "Here are some configuration options for the bot.\nThese can be changed by using the `/config <option> <vaulue>` command.\nExample: `/config delete_origin:True`\nTo view the current configuration, use `/config` without any arguments.",
+            _[config.language].gettext("Server Configuration"),
+            _[config.language].gettext(
+                "You may view the configuration of your server with `/config`.\nTo edit the config use, `/config <option>`.\nExample: `/config delete_origin:True`"
+            ),
             color="#00FFF0",
             fields=[
                 dis.EmbedField(
                     "Auto Embed",
-                    "When enabled, the bot will automatically embed the Tiktok link that is sent.",
+                    _[config.language].gettext(
+                        "If enabled, the bot will automatically embed the Tiktok links."
+                    ),
                 ).to_dict(),
                 dis.EmbedField(
                     "Delete Origin",
-                    "When enabled and _Auto Embed_ is enabled, the bot will delete the message that sent the Tiktok link.",
+                    _[config.language].gettext(
+                        "If enabled and _Auto Embed_ is enabled, the bot will delete the origin message containing the TikTok link."
+                    ),
                 ).to_dict(),
                 dis.EmbedField(
                     "Suppress Origin Embed",
-                    "Toggles the suppress origin embed feature.",
+                    _[config.language].gettext(
+                        "If enabled, the origin embed will be removed."
+                    ),
                 ).to_dict(),
             ],
         ),
         dis.Embed(
-            "Commands",
-            "Here are some commands that can be used to interact with the bot.",
+            _[config.language].gettext("Commands"),
+            _[config.language].gettext(
+                "Here are some commands to interact with the bot."
+            ),
             color="#00FFF0",
             fields=[
                 dis.EmbedField(
                     "Convert 📸",
-                    "Right click a message then go to *`Apps > Convert 📸`*. \nMeant for when *Auto Embed* is disabled in the server's config.",
+                    _[config.language].gettext(
+                        "To use, right-click a message, go to `Apps > Convert %s`. Useful for when _Auto Embed_ is disabled in your server's configuration."
+                    )
+                    % "📸",
+                ).to_dict(),
+                dis.EmbedField(
+                    "/tiktok",
+                    _[config.language].gettext(
+                        "A slash command that takes a TikTok link and returns the video. Useful for when _Auto Embed_ is disabled in your server's configuration."
+                    ),
                 ).to_dict(),
             ],
         ),
@@ -91,18 +122,17 @@ async def help(ctx: dis.InteractionContext):
 
 @dis.slash_command(
     name="privacy",
-    description="Inform yourself on some of the data we collect.",
+    description="Inform yourself of some of the data we collect.",
     sub_cmd_name="policy",
     sub_cmd_description="Review our Privacy Policy.",
 )
 async def privacy_policy(ctx: dis.InteractionContext):
-    await ctx.defer(True)
-    await ctx.send("Dont")  # TODO: Make a privacy policy
+    await ctx.send("<https://tiktoker.win/privacy>")  # TODO: Make a privacy policy
 
 
 @dis.slash_command(
     name="privacy",
-    description="Inform yourself on some of the data we collect.",
+    description="Inform yourself of some of the data we collect.",
     group_name="usage",
     sub_cmd_name="data",
     sub_cmd_description="Choose what we can collect about you.",
@@ -119,52 +149,79 @@ async def privacy_policy(ctx: dis.InteractionContext):
 )
 async def privacy_options(ctx: dis.InteractionContext, collect: str = None):
     await ctx.defer(True)
+    config = await get_guild_config(ctx.guild.id)
 
     if collect is None:
+        state = (
+            _[config.language].gettext("Opted-out")
+            if get_opted_out(ctx.author.id)
+            else _[config.language].gettext("Opted-in")
+        )
         await ctx.send(
-            f"You are currently: {'Opted Out' if get_opted_out(ctx.author.id) else 'Opted In'} \n\n**We take your privacy seriously.**\nYour data is not shared with the public. **Usage data is used to share statistics like total videos converted and total users.** \nPlease consider sharing your data with us if you want to help us improve the bot. \nYou can change this setting by using `/config collect:True` or `/config collect:False`. \n\nYou can also delete your usage data by using `/config collect:delete`."
+            _[config.language].gettext(
+                "You are currently: %s \n\n**We take your privacy seriously.**\nYour data is not public. Usage data provides statistics like total videos converted and total users. Please consider sharing your usage data with us to help improve the bot. View the help command for more information on how we handle your privacy."
+            )
+            % state
         )
         return
 
     if collect == "yes":
         await ctx.send(
-            "Thank you for sharing your data with us. Remember this is not shared with anyone."
+            _[config.language].gettext(
+                "Thank you for sharing your usage data. It will go towards improving the bot."
+            )
         )
         await remove_opted_out(ctx.author.id)
 
     elif collect == "no":
         await ctx.send(
-            "You have opted out of usage data collection. Thank you for your time."
+            _[config.language].gettext(
+                "You have opted out of usage data collection. Thank you for your time."
+            )
         )
         await add_opted_out(ctx.author.id)
 
     elif collect == "delete":
-        await ctx.send("Your usage data for this server has been deleted.")
+        await ctx.send(
+            _[config.language].gettext(
+                "Your usage data for this server has been deleted."
+            )
+        )
         await remove_usage_data(ctx.guild.id, ctx.author.id)
 
 
 @dis.slash_command(
     "config",
-    "Configures the bot for your server. (Leave options blank to view current settings)",
+    "Configure the bot for your server.",
 )
 @dis.slash_option(
-    "auto_embed", "Toggles auto embedding of tiktok links.", dis.OptionTypes.BOOLEAN
+    "auto_embed", "Toggle auto embedding of TikTok links.", dis.OptionTypes.BOOLEAN
 )
 @dis.slash_option(
     "delete_origin",
-    "Toggles deleting of the origin message. (When auto_embed True)",
+    "Toggle the deletion of the origin message. (When auto_embed True)",
     dis.OptionTypes.BOOLEAN,
 )
 @dis.slash_option(
     "suppress_origin_embed",
-    "Toggles suppression of the origin message embed.",
+    "Toggle suppression of the origin message embed.",
     dis.OptionTypes.BOOLEAN,
+)
+# languages=["en", "es", "pl", "vi", "de"]
+
+
+@dis.slash_option(
+    "language",
+    "The language of the bot.",
+    dis.OptionTypes.STRING,
+    choices=[dis.SlashCommandChoice(value, key) for key, value in lang_names.items()],
 )
 async def setup_config(
     ctx: dis.InteractionContext,
     auto_embed: bool = None,
     delete_origin: bool = None,
     suppress_origin_embed: bool = None,
+    language: str = None,
 ):
     """
     Sets up the config for the guild.
@@ -176,9 +233,17 @@ async def setup_config(
     guild_id = ctx.guild.id
     await ctx.defer()
     config = await get_guild_config(guild_id)
-    if auto_embed is None and delete_origin is None and suppress_origin_embed is None:
+    if (
+        auto_embed is None
+        and delete_origin is None
+        and suppress_origin_embed is None
+        and language is None
+    ):
         embed = dis.Embed(
-            "Current Config", "To change a setting, use `/config <setting> <value>`"
+            _[config.language].gettext("Current Config"),
+            _[config.language].gettext(
+                "To change a setting, use `/config <setting> <value>`."
+            ),
         )
         embed.add_field("Auto Embed", "☑️" if config.auto_embed else "❌", inline=True)
         embed.add_field(
@@ -189,6 +254,7 @@ async def setup_config(
             "☑️" if config.suppress_origin_embed else "❌",
             inline=True,
         )
+        embed.add_field("Language", config.language, inline=True)
         await ctx.send(embed=embed)
         return
 
@@ -198,11 +264,16 @@ async def setup_config(
         config.delete_origin = delete_origin
     if suppress_origin_embed is not None:
         config.suppress_origin_embed = suppress_origin_embed
+    if language is not None:
+        config.language = language
 
     await config.save()
 
     embed = dis.Embed(
-        "Current Config", "To change a setting, use `/config <setting> <value>`"
+        _[config.language].gettext("Current Config"),
+        _[config.language].gettext(
+            "To change a setting, use `/config <setting> <value>`."
+        ),
     )
     embed.add_field("Auto Embed", "☑️" if config.auto_embed else "❌", inline=True)
     embed.add_field("Delete Origin", "☑️" if config.delete_origin else "❌", inline=True)
@@ -211,17 +282,21 @@ async def setup_config(
         "☑️" if config.suppress_origin_embed else "❌",
         inline=True,
     )
+    embed.add_field("Language", config.language, inline=True)
     await ctx.send(embed=embed)
 
 
 @dis.context_menu("Convert 📸", dis.CommandTypes.MESSAGE)
 async def menu_convert_video(ctx: dis.InteractionContext):
     await ctx.defer()
+    config = await get_guild_config(ctx.guild.id)
     link = check_for_link(ctx.target.content)
     if not link:
-        await ctx.send("I don't see a link in that message.", ephemeral=True)
+        await ctx.send(
+            _[config.language].gettext("There is no TikTok link in that message."),
+            ephemeral=True,
+        )
         return
-    config = await get_guild_config(ctx.guild.id)
 
     if link.type == VideoIdType.SHORT:
         video_id = await get_video_id(link.url)
@@ -256,12 +331,16 @@ async def menu_convert_video(ctx: dis.InteractionContext):
     await insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
 
 
-@dis.slash_command("tiktok", "Convert a tiktok link to a video.")
-@dis.slash_option("link", "The link to convert.", dis.OptionTypes.STRING, True)
+@dis.slash_command("tiktok", "Convert a TikTok link into a video.")
+@dis.slash_option("link", "The TikTok link to convert.", dis.OptionTypes.STRING, True)
 async def slash_tiktok(ctx: dis.InteractionContext, link: str):
+    config = await get_guild_config(ctx.guild.id)
     link = check_for_link(link)
     if not link:
-        await ctx.send("That doesn't seem to be a valid link.", ephemeral=True)
+        await ctx.send(
+            _[config.language].gettext("That doesn't seem to be a valid TikTok link."),
+            ephemeral=True,
+        )
         return
 
     if link.type == VideoIdType.SHORT:
@@ -363,6 +442,7 @@ async def on_message_create(event: dis.events.MessageCreate):
 @dis.listen(dis.events.Button)
 async def on_button_click(event: dis.events.Button):
     ctx = event.context
+    config = await get_guild_config(ctx.guild.id)
     if ctx.custom_id.startswith("delete"):
         if dis.Permissions.MANAGE_MESSAGES in ctx.author.channel_permissions(
             ctx.channel
@@ -372,7 +452,10 @@ async def on_button_click(event: dis.events.Button):
             await ctx.delete()
         else:
             await ctx.send(
-                "You don't have the permissions to delete this message.", ephemeral=True
+                _[config.language].gettext(
+                    "You don't have the permissions to delete this message."
+                ),
+                ephemeral=True,
             )
     elif ctx.custom_id.startswith("v_id"):
         await ctx.defer(ephemeral=True)
@@ -391,18 +474,32 @@ async def on_button_click(event: dis.events.Button):
 
         embed.set_author(name=author.nickname, icon_url=author.avatar, url=author.url)
         embed.set_thumbnail(url=video.cover_url)
-        embed.add_field("Views 👁️", stats.play_count, True)
-        embed.add_field("Likes ❤️", stats.like_count, True)
-        embed.add_field("Comments 💬", stats.comment_count, True)
-        embed.add_field("Shares 🔃", stats.share_count, True)
-        embed.add_field("Downloads 📥", stats.download_count, True)
-        embed.add_field("Created", tiktok.created, True)
+        embed.add_field(
+            _[config.language].gettext("Views %s") % "👀", stats.play_count, True
+        )
+        embed.add_field(
+            _[config.language].gettext("Likes %s") % "❤️", stats.like_count, True
+        )
+
+        embed.add_field(
+            _[config.language].gettext("Comments %s") % "💬", stats.comment_count, True
+        )
+        embed.add_field(
+            _[config.language].gettext("Shares %s") % "🔃", stats.share_count, True
+        )
+        embed.add_field(
+            _[config.language].gettext("Downloads %s") % "📥", stats.download_count, True
+        )
+
+        embed.add_field(_[config.language].gettext("Created"), tiktok.created, True)
         download_btn = dis.Button(
-            dis.ButtonStyles.URL, "Download", url=video.download_url
+            dis.ButtonStyles.URL,
+            _[config.language].gettext("Download"),
+            url=video.download_url,
         )
         if len(tiktok.description.tags) > 0:
             embed.add_field(
-                "Tags 🔖",
+                _[config.language].gettext("Tags %s") % "🔖",
                 ", ".join(
                     [
                         f"[`#{tag}`](https://www.tiktok.com/tag/{tag})"
@@ -414,7 +511,7 @@ async def on_button_click(event: dis.events.Button):
 
         audio_btn = dis.Button(
             dis.ButtonStyles.GRAY,
-            "Audio",
+            _[config.language].gettext("Audio"),
             emoji="🎵",
             custom_id=f"m_id{tiktok.id}",
         )
@@ -428,7 +525,11 @@ async def on_button_click(event: dis.events.Button):
         try:
             tiktok = await get_tiktok(int(ctx.custom_id[4:]))
         except Exception as e:
-            await ctx.send("Seems this audio has been deleted/taken down.")
+            await ctx.send(
+                _[config.language].gettext(
+                    "It seems this audio is deleted or taken down."
+                )
+            )
             print(f"Error: {e}")
             return
 
@@ -440,7 +541,11 @@ async def on_button_click(event: dis.events.Button):
 
         if extra_music_data := await get_music_data(music.id):
             video_count = extra_music_data["musicInfo"]["stats"]["videoCount"]
-            embed.add_field(name="Video Count 📱", value=video_count, inline=False)
+            embed.add_field(
+                name=_[config.language].gettext("Video Count %s") % "📱",
+                value=video_count,
+                inline=False,
+            )
 
         embed.set_author(
             name=music.owner_nickname, url=music.owner_url, icon_url=music.avatar_url
@@ -450,7 +555,9 @@ async def on_button_click(event: dis.events.Button):
         await ctx.send(
             embed=embed,
             components=dis.Button(
-                dis.ButtonStyles.URL, url=music.play_url, label="Download"
+                dis.ButtonStyles.URL,
+                url=music.play_url,
+                label=_[config.language].gettext("Download"),
             ),
         )
 

@@ -26,7 +26,7 @@ from utils.translate import language_names as lang_names
 bot = dis.Snake(
     intents=dis.Intents.MESSAGES | dis.Intents.DEFAULT,
     sync_interactions=True,
-    delete_unused_application_cmds=True,
+    delete_unused_application_cmds=False, # this is a bit buggy on restarts
 )
 
 

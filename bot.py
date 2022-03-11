@@ -34,7 +34,7 @@ bot = dis.Snake(
 async def on_startup():
     client = motor.motor_asyncio.AsyncIOMotorClient(get_key(".env", "MONGODB_URL"))
     await init_beanie(
-        database=client.tiktoker_dev,
+        database=client.tiktoker,
         document_models=[Config, UsageData, Shortener, OptedOut],
     )
 

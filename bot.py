@@ -26,7 +26,8 @@ from utils.translate import language_names as lang_names
 bot = dis.Snake(
     intents=dis.Intents.MESSAGES | dis.Intents.DEFAULT,
     sync_interactions=True,
-    delete_unused_application_cmds=False, # this is a bit buggy on restarts
+    debug_scope=780435741650059264,
+    delete_unused_application_cmds=True,  # this is a bit buggy on restarts
 )
 
 
@@ -142,9 +143,9 @@ async def privacy_policy(ctx: dis.InteractionContext):
     "Save usage data?",
     dis.OptionTypes.STRING,
     choices=[
-        dis.SlashCommandChoice("yes", "yes"),
-        dis.SlashCommandChoice("no", "no"),
-        dis.SlashCommandChoice("delete", "delete"),
+        dis.SlashCommandChoice("Yes (collect data)", "yes"),
+        dis.SlashCommandChoice("No (do not collect)", "no"),
+        dis.SlashCommandChoice("Delete (delete server usage data)", "delete"),
     ],
 )
 async def privacy_options(ctx: dis.InteractionContext, collect: str = None):
@@ -154,7 +155,7 @@ async def privacy_options(ctx: dis.InteractionContext, collect: str = None):
     if collect is None:
         state = (
             _[config.language].gettext("Opted-out")
-            if get_opted_out(ctx.author.id)
+            if await get_opted_out(ctx.author.id)
             else _[config.language].gettext("Opted-in")
         )
         await ctx.send(
@@ -226,8 +227,13 @@ async def setup_config(
     """
     Sets up the config for the guild.
     """
-    if not ctx.author.has_permission(dis.Permissions.MANAGE_GUILD | dis.Permissions.ADMINISTRATOR):
-        await ctx.send("You do not have permission to use this command. Reason: `Missing Manage Server Permission`", ephemeral=True)
+    if not ctx.author.has_permission(
+        dis.Permissions.MANAGE_GUILD | dis.Permissions.ADMINISTRATOR
+    ):
+        await ctx.send(
+            "You do not have permission to use this command. Reason: `Missing Manage Server Permission`",
+            ephemeral=True,
+        )
         return
 
     guild_id = ctx.guild.id
@@ -746,16 +752,16 @@ async def insert_usage_data(
 
 
 async def add_opted_out(user_id: int) -> None:
-    await OptedOut({user_id: True}).insert()
+    await OptedOut(user_id=user_id).insert()
 
 
 async def remove_opted_out(user_id: int) -> None:
-    await OptedOut.delete({user_id: True})
+    await OptedOut.find({"user_id": user_id}).delete()
 
 
 async def remove_usage_data(guild_id: int, user_id: int) -> None:
-    return  # TODO: remove usage data
-    data = UsageData.find_all({guild_id: guild_id, user_id: user_id})
+    usage_data = UsageData.find_many({"guild_id": guild_id, "user_id": user_id})
+    await usage_data.update_many().set({"message_id": None, "user_id": None})
 
 
 async def get_opted_out(user_id: int) -> bool:

@@ -1,7 +1,7 @@
-from beanie import Document, Indexed, init_beanie
-import motor
+from beanie import Document, Indexed
 from datetime import datetime
 import dis_snek as dis
+from typing import Optional
 
 
 class Config(Document, dis.DictSerializationMixin):
@@ -14,9 +14,9 @@ class Config(Document, dis.DictSerializationMixin):
 
 class UsageData(Document):
     guild_id: Indexed(int)
-    user_id: Indexed(int)
+    user_id: Optional[int] = None
     video_id: Indexed(int)
-    message_id: Indexed(int)
+    message_id: Optional[int] = None
     timestamp: Indexed(int) = datetime.now().timestamp()
 
 

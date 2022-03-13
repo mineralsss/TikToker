@@ -18,11 +18,14 @@ for x in languages:
         + "/LC_MESSAGES/bot.po"
     )
     # open po file and get language team
-    with open(
-        cwd + "/locale/" + x + "/LC_MESSAGES/bot.po", "r", encoding="UTF-8"
-    ) as file:
-        if team := re.search(regex, file.read()):
-            language_names[x] = (team.group(1)).replace('\\n"', "")
+    try:
+        with open(
+            cwd + "/locale/" + x + "/LC_MESSAGES/bot.po", "r", encoding="UTF-8"
+        ) as file:
+            if team := re.search(regex, file.read()):
+                language_names[x] = (team.group(1)).replace('\\n"', "")
+    except:
+        continue
 
 
 initilized_langs = {}

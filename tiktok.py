@@ -4,6 +4,7 @@ from attr import define
 import attr
 import dis_snek as dis
 from dis_snek.client.utils.converters import timestamp_converter
+import re
 
 
 @attr.s()
@@ -153,7 +154,8 @@ class Description(TikTokObject):
 def clean_desc(text_extra, desc) -> str:
     for tag in text_extra:
         desc: str
-        desc = desc.replace(f"#{tag.get('hashtag_name')}", "", 1)
+        desc = desc.lower().replace(f"#{tag.get('hashtag_name').lower()}", "", 1)
+        desc = re.sub(r"\s+", " ", desc)
     return desc.strip()
 
 

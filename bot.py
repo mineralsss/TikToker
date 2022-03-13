@@ -26,8 +26,7 @@ from utils.translate import language_names as lang_names
 bot = dis.Snake(
     intents=dis.Intents.MESSAGES | dis.Intents.DEFAULT,
     sync_interactions=True,
-    debug_scope=780435741650059264,
-    delete_unused_application_cmds=True,  # this is a bit buggy on restarts
+    delete_unused_application_cmds=False,  # this is a bit buggy on restarts
 )
 
 
@@ -504,14 +503,18 @@ async def on_button_click(event: dis.events.Button):
             url=video.download_url,
         )
         if len(tiktok.description.tags) > 0:
+            tags = " ".join(
+                [
+                    f"[`#{tag}`](http://tiktok.com/tag/{tag})"
+                    for tag in tiktok.description.tags
+                ]
+            )
+            if len(tags) > 1024:
+                tags = tags[:1024].rsplit(") ", 1)[0] + ") ..."
+
             embed.add_field(
                 _[config.language].gettext("Tags %s") % "🔖",
-                ", ".join(
-                    [
-                        f"[`#{tag}`](https://www.tiktok.com/tag/{tag})"
-                        for tag in tiktok.description.tags
-                    ]
-                ),
+                tags,
                 True,
             )
 

@@ -654,12 +654,16 @@ def check_for_link(content: str) -> Optional["LinkData"]:
         LinkData
     """
     try:
+        fyp_match = re.search(
+            r"(?P<http>http:|https:\/\/)?(www)?\.tiktok.com\/(.*)item_id=(?P<item_id>\d{5,30})",
+            content,
+        )
         long_match = re.search(
             r"(?P<http>http:|https:\/\/)?(www\.)?tiktok\.com\/(@.{1,24})\/video\/(?P<id>\d{15,30})",
             content,
         )
         short_match = re.search(
-            r"(?P<http>http:|https:\/\/)?(\w{2})\.tiktok.com\/(?P<short_id>\w{5,15})",
+            r"(?P<http>http:|https:\/\/)?((?!ww)\w{2})\.tiktok.com\/(?P<short_id>\w{5,15})",
             content,
         )
         medium_match = re.search(
@@ -703,6 +707,18 @@ def check_for_link(content: str) -> Optional["LinkData"]:
             )
         return LinkData.from_list(
             [VideoIdType.MEDIUM, medium_match.group("id"), medium_match.group(0)]
+        )
+    if fyp_match:
+        if not fyp_match.group("http"):
+            return LinkData.from_list(
+                [
+                    VideoIdType.FYP,
+                    fyp_match.group("item_id"),
+                    f"https://{fyp_match.group(0)}",
+                ]
+            )
+        return LinkData.from_list(
+            [VideoIdType.FYP, fyp_match.group("item_id"), fyp_match.group(0)]
         )
     return None
 

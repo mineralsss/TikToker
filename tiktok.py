@@ -41,12 +41,16 @@ class Video(TikTokObject):
     download_url: str = attr.ib()
     cover_url: str = attr.ib()
     video_uri: str = attr.ib()
+    size: int = attr.ib()
+    """ Bytes """
 
     @classmethod
     def _process_dict(cls, data: dict) -> dict:
         if play_addr := data.get("play_addr"):
             data["download_url"] = play_addr.get("url_list")[2]
             data["video_uri"] = play_addr.get("uri")
+            data["size"] = play_addr.get("data_size")
+
         if cover_addr := data.get("cover"):
             data["cover_url"] = cover_addr.get("url_list")[0]
 
@@ -157,7 +161,7 @@ def clean_desc(text_extra, desc) -> str:
             desc: str
             desc = desc.lower().replace(f"#{tag.get('hashtag_name').lower()}", "", 1)
             desc = re.sub(r"\s+", " ", desc)
-        return desc.strip()
+    return desc.strip()
 
 
 @define

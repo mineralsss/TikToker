@@ -329,10 +329,18 @@ async def menu_convert_video(ctx: dis.InteractionContext):
     )
     if config.suppress_origin_embed:
         await ctx.target.suppress_embeds()
-    sent_msg = await ctx.send(
-        short_url + f" | [Origin]({ctx.target.jump_url})",
-        components=[more_info_btn, delete_msg_btn],
+
+    too_big = False
+    if tiktok.video.size > 50000000:
+        too_big = _[config.language].gettext(
+            "This video may be too long/big for Discord to embed. Just visit the link above."
+        )
+    message = _[config.language].gettext("%s | [Origin](%s) %s") % (
+        short_url,
+        ctx.target.jump_url,
+        "\n" + too_big if too_big else "",
     )
+    sent_msg = await ctx.send(message, components=[more_info_btn, delete_msg_btn])
     await insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
 
 
@@ -371,10 +379,16 @@ async def slash_tiktok(ctx: dis.InteractionContext, link: str):
         emoji="🗑️",
         custom_id=f"delete{ctx.author.id}",
     )
-    sent_msg = await ctx.send(
+    too_big = False
+    if tiktok.video.size > 50000000:
+        too_big = _[config.language].gettext(
+            "This video may be too long/big for Discord to embed. Just visit the link above."
+        )
+    message = _[config.language].gettext("%s %s") % (
         short_url,
-        components=[more_info_btn, delete_msg_btn],
+        "\n" + too_big if too_big else "",
     )
+    sent_msg = await ctx.send(message, components=[more_info_btn, delete_msg_btn])
     await insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
 
 
@@ -416,10 +430,20 @@ async def on_message_create(event: dis.events.MessageCreate):
         emoji="🗑️",
         custom_id=f"delete{event.message.author.id}",
     )
+    too_big = False
+    if tiktok.video.size > 50000000:  # 50mb | This is Discord's limit for embeds
+        too_big = _[config.language].gettext(
+            "This video may be too long/big for Discord to embed. Just visit the link above."
+        )
 
     if config.delete_origin:
+        message = _[config.language].gettext("%s | From: %s %s") % (
+            short_url,
+            event.message.author.mention,
+            "\n" + too_big if too_big else "",
+        )
         sent_msg = await event.message.channel.send(
-            short_url + f" | From: {event.message.author.mention}",
+            message,
             components=[more_info_btn, delete_msg_btn],
             allowed_mentions=dis.AllowedMentions.none(),
         )
@@ -430,13 +454,21 @@ async def on_message_create(event: dis.events.MessageCreate):
     elif config.suppress_origin_embed:
         await event.message.suppress_embeds()
         await bot.fetch_channel(event.message._channel_id)
+        message = _[config.language].gettext("%s %s") % (
+            short_url,
+            "\n" + too_big if too_big else "",
+        )
         sent_msg = await event.message.reply(
-            short_url, components=[more_info_btn, delete_msg_btn]
+            message, components=[more_info_btn, delete_msg_btn]
         )
     else:
         await bot.fetch_channel(event.message._channel_id)
+        message = _[config.language].gettext("%s %s") % (
+            short_url,
+            "\n" + too_big if too_big else "",
+        )
         sent_msg = await event.message.reply(
-            short_url, components=[more_info_btn, delete_msg_btn]
+            message, components=[more_info_btn, delete_msg_btn]
         )
 
     await insert_usage_data(
@@ -469,13 +501,12 @@ async def on_button_click(event: dis.events.Button):
         video = tiktok.video
         author = tiktok.author
         stats = tiktok.statistics
+        desc = None
 
-        embed = dis.Embed(
-            tiktok.description.cleaned[:256]
-            if tiktok.description.cleaned != ""
-            else None,
-            description=tiktok.share_url,
-        )
+        if tiktok.description.cleaned != "" and tiktok.description.cleaned != None:
+            desc = tiktok.description.cleaned[:256]
+
+        embed = dis.Embed(desc, description=tiktok.share_url)
 
         embed.set_author(name=author.nickname, icon_url=author.avatar, url=author.url)
         embed.set_thumbnail(url=video.cover_url)

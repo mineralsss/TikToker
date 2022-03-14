@@ -35,4 +35,4 @@ class VideoIdType(Enum):
     LONG = 0  # https://www.tiktok.com/@placeholder/video/7068971038273423621
     SHORT = 1  # https://vm.tiktok.com/PTPdh1wVay/
     MEDIUM = 2  # https://m.tiktok.com/v/7068971038273423621.html
-    FYP = 3 # https://www.tiktok.com/foryou?_r=1&is_from_webapp=v1&item_id=7068971038273423621&source=h5_m#/@yakmofo123/video/7068971038273423621
+    FYP = 3  # https://www.tiktok.com/foryou?_r=1&is_from_webapp=v1&item_id=7068971038273423621&source=h5_m#/@yakmofo123/video/7068971038273423621

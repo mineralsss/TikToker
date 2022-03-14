@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: tiktoker\n"
 "POT-Creation-Date: 2022-03-10 15:02-0500\n"
 "PO-Revision-Date: 2022-03-14 03:46\n"
-"Last-Translator: \n"
+"Last-Translator: minerals\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -42,20 +42,20 @@ msgid "You may view the configuration of your server with `/config`.\n"
 "To edit the config use, `/config <option>`.\n"
 "Example: `/config delete_origin:True`"
 msgstr "Bạn có thể xem cấu hình server của bạn bằng `/config`.\n"
-"Để chỉnh sửa việc sử dụng cấu hình, sử dụng `/config <option>`.\n"
+"Để chỉnh sửa cấu hình, sử dụng `/config <option>`.\n"
 "Ví dụ: `/config delete_origin:True`"
 
 #: .\bot.py:71
 msgid "If enabled, the bot will automatically embed the Tiktok links."
-msgstr ""
+msgstr "Khi đã được kích hoạt, bot sẽ tự động đính kèm vào các link Tiktok "
 
 #: .\bot.py:77
 msgid "If enabled and _Auto Embed_ is enabled, the bot will delete the origin message containing the TikTok link."
-msgstr ""
+msgstr "Nếu đã được kích hoạt và _Auto Embed_ đã được bật, bot sẽ tự động xóa tin nhắn gốc chứa link Tiktok"
 
 #: .\bot.py:83
 msgid "If enabled, the origin embed will be removed."
-msgstr ""
+msgstr "Khi đã được kích hoạt, mã nhúng từ tin nhắn gốc sẽ bị xóa"
 
 #: .\bot.py:90
 msgid "Commands"
@@ -71,15 +71,15 @@ msgstr "Để sử dụng, nhấp chuột phải vào tin nhắn và chọn `Ứ
 
 #: .\bot.py:105
 msgid "A slash command that takes a TikTok link and returns the video. Useful for when _Auto Embed_ is disabled in your server's configuration."
-msgstr ""
+msgstr "Một câu kệnh gạch sẽ nhận link Tiktok và trả lại video. Hữu dụng khi _Auto Embed_ được tắt trong cài đặt server của bạn"
 
 #: .\bot.py:156
 msgid "Opted-out"
-msgstr "Hủy đăng ký"
+msgstr "Đã lựa chọn hủy"
 
 #: .\bot.py:158
 msgid "Opted-in"
-msgstr "Đăng ký nhận tin"
+msgstr "Đã lựa chọn nhận"
 
 #: .\bot.py:161
 msgid "You are currently: %s \n\n"
@@ -115,7 +115,7 @@ msgstr "Không có đường liên kết TikTok nào trong tin nhắn."
 
 #: .\bot.py:335 .\bot.py:384 .\bot.py:432
 msgid "This video may be too long/big for Discord to embed. Just visit the link above."
-msgstr ""
+msgstr "Video này quá dài hoặc quá lớn để đính vào trong Discord. Hãy truy cập link trên."
 
 #: .\bot.py:338
 msgid "%s | [Origin](%s) %s"

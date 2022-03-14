@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tiktoker\n"
 "POT-Creation-Date: 2022-03-10 15:02-0500\n"
-"PO-Revision-Date: 2022-03-14 03:28\n"
+"PO-Revision-Date: 2022-03-14 03:46\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -111,7 +111,7 @@ msgstr ""
 msgid "There is no TikTok link in that message."
 msgstr ""
 
-#: .\bot.py:335 .\bot.py:384 .\bot.py:435
+#: .\bot.py:335 .\bot.py:384 .\bot.py:432
 msgid "This video may be too long/big for Discord to embed. Just visit the link above."
 msgstr ""
 
@@ -123,59 +123,55 @@ msgstr ""
 msgid "That doesn't seem to be a valid TikTok link."
 msgstr ""
 
-#: .\bot.py:387 .\bot.py:457 .\bot.py:466
-msgid "%s %s"
-msgstr ""
-
-#: .\bot.py:440
+#: .\bot.py:437
 msgid "%s | From: %s %s"
 msgstr ""
 
-#: .\bot.py:492
+#: .\bot.py:483
 msgid "You don't have the permissions to delete this message."
 msgstr ""
 
-#: .\bot.py:514
+#: .\bot.py:505
 msgid "Views %s"
 msgstr ""
 
-#: .\bot.py:517
+#: .\bot.py:508
 msgid "Likes %s"
 msgstr ""
 
-#: .\bot.py:521
+#: .\bot.py:512
 msgid "Comments %s"
 msgstr ""
 
-#: .\bot.py:524
+#: .\bot.py:515
 msgid "Shares %s"
 msgstr ""
 
-#: .\bot.py:527
+#: .\bot.py:518
 msgid "Downloads %s"
 msgstr ""
 
-#: .\bot.py:530
+#: .\bot.py:521
 msgid "Created"
 msgstr ""
 
-#: .\bot.py:533 .\bot.py:600
+#: .\bot.py:524 .\bot.py:591
 msgid "Download"
 msgstr ""
 
-#: .\bot.py:547
+#: .\bot.py:538
 msgid "Tags %s"
 msgstr ""
 
-#: .\bot.py:554
+#: .\bot.py:545
 msgid "Audio"
 msgstr ""
 
-#: .\bot.py:569
+#: .\bot.py:560
 msgid "It seems this audio is deleted or taken down."
 msgstr ""
 
-#: .\bot.py:585
+#: .\bot.py:576
 msgid "Video Count %s"
 msgstr ""
 

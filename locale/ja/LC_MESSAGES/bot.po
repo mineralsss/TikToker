@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tiktoker\n"
 "POT-Creation-Date: 2022-03-10 15:02-0500\n"
-"PO-Revision-Date: 2022-03-14 03:28\n"
+"PO-Revision-Date: 2022-03-14 03:46\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -113,7 +113,7 @@ msgstr "設定を変更するには、`/config <setting> <value>`を使用して
 msgid "There is no TikTok link in that message."
 msgstr "そのメッセージにはTIkTokのリンクが含まれていません。"
 
-#: .\bot.py:335 .\bot.py:384 .\bot.py:435
+#: .\bot.py:335 .\bot.py:384 .\bot.py:432
 msgid "This video may be too long/big for Discord to embed. Just visit the link above."
 msgstr ""
 
@@ -125,59 +125,55 @@ msgstr ""
 msgid "That doesn't seem to be a valid TikTok link."
 msgstr "有効なTikTokのリンクではありません。"
 
-#: .\bot.py:387 .\bot.py:457 .\bot.py:466
-msgid "%s %s"
-msgstr ""
-
-#: .\bot.py:440
+#: .\bot.py:437
 msgid "%s | From: %s %s"
 msgstr ""
 
-#: .\bot.py:492
+#: .\bot.py:483
 msgid "You don't have the permissions to delete this message."
 msgstr "このメッセージを削除する権限がありません。"
 
-#: .\bot.py:514
+#: .\bot.py:505
 msgid "Views %s"
 msgstr "視聴回数: %s"
 
-#: .\bot.py:517
+#: .\bot.py:508
 msgid "Likes %s"
 msgstr "いいね: %s"
 
-#: .\bot.py:521
+#: .\bot.py:512
 msgid "Comments %s"
 msgstr "コメント: %s"
 
-#: .\bot.py:524
+#: .\bot.py:515
 msgid "Shares %s"
 msgstr "共有: %s"
 
-#: .\bot.py:527
+#: .\bot.py:518
 msgid "Downloads %s"
 msgstr "ダウンロード: %s"
 
-#: .\bot.py:530
+#: .\bot.py:521
 msgid "Created"
 msgstr "作成日時"
 
-#: .\bot.py:533 .\bot.py:600
+#: .\bot.py:524 .\bot.py:591
 msgid "Download"
 msgstr "ダウンロード"
 
-#: .\bot.py:547
+#: .\bot.py:538
 msgid "Tags %s"
 msgstr "タグ: %s"
 
-#: .\bot.py:554
+#: .\bot.py:545
 msgid "Audio"
 msgstr "音声"
 
-#: .\bot.py:569
+#: .\bot.py:560
 msgid "It seems this audio is deleted or taken down."
 msgstr "この音声は削除されているようです。"
 
-#: .\bot.py:585
+#: .\bot.py:576
 msgid "Video Count %s"
 msgstr "動画数: %s"
 

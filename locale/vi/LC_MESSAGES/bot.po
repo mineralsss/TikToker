@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tiktoker\n"
 "POT-Creation-Date: 2022-03-10 15:02-0500\n"
-"PO-Revision-Date: 2022-03-14 03:28\n"
+"PO-Revision-Date: 2022-03-14 03:46\n"
 "Last-Translator: \n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -113,7 +113,7 @@ msgstr "Để thay đổi cài đặt, sử dụng `/config <setting> <value>`."
 msgid "There is no TikTok link in that message."
 msgstr "Không có đường liên kết TikTok nào trong tin nhắn."
 
-#: .\bot.py:335 .\bot.py:384 .\bot.py:435
+#: .\bot.py:335 .\bot.py:384 .\bot.py:432
 msgid "This video may be too long/big for Discord to embed. Just visit the link above."
 msgstr ""
 
@@ -125,59 +125,55 @@ msgstr ""
 msgid "That doesn't seem to be a valid TikTok link."
 msgstr "Có vẻ như đường liên kết TikTok đó không có hiệu lực."
 
-#: .\bot.py:387 .\bot.py:457 .\bot.py:466
-msgid "%s %s"
-msgstr ""
-
-#: .\bot.py:440
+#: .\bot.py:437
 msgid "%s | From: %s %s"
 msgstr ""
 
-#: .\bot.py:492
+#: .\bot.py:483
 msgid "You don't have the permissions to delete this message."
 msgstr "Bạn không có quyền xóa tin nhắn này."
 
-#: .\bot.py:514
+#: .\bot.py:505
 msgid "Views %s"
 msgstr "Lượt xem %s"
 
-#: .\bot.py:517
+#: .\bot.py:508
 msgid "Likes %s"
 msgstr "Thích %s"
 
-#: .\bot.py:521
+#: .\bot.py:512
 msgid "Comments %s"
 msgstr "Bình luận %s"
 
-#: .\bot.py:524
+#: .\bot.py:515
 msgid "Shares %s"
 msgstr "Chia sẻ %s"
 
-#: .\bot.py:527
+#: .\bot.py:518
 msgid "Downloads %s"
 msgstr "Tải xuống %s"
 
-#: .\bot.py:530
+#: .\bot.py:521
 msgid "Created"
 msgstr "Đã được tạo"
 
-#: .\bot.py:533 .\bot.py:600
+#: .\bot.py:524 .\bot.py:591
 msgid "Download"
 msgstr "Tải xuống"
 
-#: .\bot.py:547
+#: .\bot.py:538
 msgid "Tags %s"
 msgstr "Các thẻ %s"
 
-#: .\bot.py:554
+#: .\bot.py:545
 msgid "Audio"
 msgstr "Âm thanh"
 
-#: .\bot.py:569
+#: .\bot.py:560
 msgid "It seems this audio is deleted or taken down."
 msgstr "Có vẻ như âm thanh này đã bị xóa hoặc bị gỡ xuống."
 
-#: .\bot.py:585
+#: .\bot.py:576
 msgid "Video Count %s"
 msgstr "Số lượng video %s"
 

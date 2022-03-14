@@ -153,10 +153,11 @@ class Description(TikTokObject):
 
 def clean_desc(text_extra, desc) -> str:
     for tag in text_extra:
-        desc: str
-        desc = desc.lower().replace(f"#{tag.get('hashtag_name').lower()}", "", 1)
-        desc = re.sub(r"\s+", " ", desc)
-    return desc.strip()
+        if tag.get("type") == 1:
+            desc: str
+            desc = desc.lower().replace(f"#{tag.get('hashtag_name').lower()}", "", 1)
+            desc = re.sub(r"\s+", " ", desc)
+        return desc.strip()
 
 
 @define

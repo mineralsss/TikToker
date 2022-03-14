@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tiktoker\n"
 "POT-Creation-Date: 2022-03-10 15:02-0500\n"
-"PO-Revision-Date: 2022-03-11 13:22\n"
+"PO-Revision-Date: 2022-03-14 03:28\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -11,33 +11,33 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
 "X-Crowdin-Project: tiktoker\n"
-"X-Crowdin-Project-ID: 503708\n"
+"X-Crowdin-Project-ID: 504126\n"
 "X-Crowdin-Language: pl\n"
-"X-Crowdin-File: /[tiktoker-bot.TikToker] crowdin/locale/en/LC_MESSAGES/bot.po\n"
-"X-Crowdin-File-ID: 12\n"
+"X-Crowdin-File: /master/locale/en/LC_MESSAGES/bot.po\n"
+"X-Crowdin-File-ID: 22\n"
 "Language: pl_PL\n"
 
-#: .\bot.py:47
+#: .\bot.py:48
 msgid "What is TikToker?"
 msgstr "Czym jest TikToker?"
 
-#: .\bot.py:48
+#: .\bot.py:49
 msgid "Tiktoker is a bot that allows you to send playable TikTok videos to your Discord server."
 msgstr "Tiktoker to bot, który pozwala na wysyłanie oglądalnych Tiktoków do twojego serwera Discord."
 
-#: .\bot.py:52
+#: .\bot.py:55
 msgid "Help Menu"
 msgstr "Menu Pomocy"
 
-#: .\bot.py:53
+#: .\bot.py:56
 msgid "Click the arrow buttons below to navigate the help menu."
 msgstr "Użyj przycisków strzałek poniżej, aby nawigować się po menu pomocy."
 
-#: .\bot.py:60
+#: .\bot.py:63
 msgid "Server Configuration"
 msgstr "Konfiguracja Serwera"
 
-#: .\bot.py:61
+#: .\bot.py:64
 msgid "You may view the configuration of your server with `/config`.\n"
 "To edit the config use, `/config <option>`.\n"
 "Example: `/config delete_origin:True`"
@@ -45,43 +45,43 @@ msgstr "Możesz zobaczyć konfigurację swojego serwera za pomocą `/config`.\n"
 "Aby ją edytować, użyj `/config <option>`.\n"
 "Przykład: `/config delete_origin:True`"
 
-#: .\bot.py:68
+#: .\bot.py:71
 msgid "If enabled, the bot will automatically embed the Tiktok links."
 msgstr "Kiedy włączone, bot będzie automatycznie embedował linki TikTok."
 
-#: .\bot.py:74
+#: .\bot.py:77
 msgid "If enabled and _Auto Embed_ is enabled, the bot will delete the origin message containing the TikTok link."
 msgstr "Gdy włączone oraz _Auto Embed_ jest włączone, bot będzie usuwał oryginalną wiadomość zawierającą link do TikToka."
 
-#: .\bot.py:80
+#: .\bot.py:83
 msgid "If enabled, the origin embed will be removed."
 msgstr "Gdy włączone, oryginalny embed będzie usuwany."
 
-#: .\bot.py:85
+#: .\bot.py:90
 msgid "Commands"
 msgstr "Komendy"
 
-#: .\bot.py:86
+#: .\bot.py:91
 msgid "Here are some commands to interact with the bot."
 msgstr "Oto kilka poleceń do interakcji z botem."
 
-#: .\bot.py:91
+#: .\bot.py:98
 msgid "To use, right-click a message, go to `Apps > Convert %s`. Useful for when _Auto Embed_ is disabled in your server's configuration."
 msgstr "Aby użyć, kliknij prawym na wiadomość, a następnie przejdź do `Aplikacje > Convert %s`. Przydatne, jeśli _Auto Embed_ jest wyłączone w konfiguracji serwera."
 
-#: .\bot.py:98
+#: .\bot.py:105
 msgid "A slash command that takes a TikTok link and returns the video. Useful for when _Auto Embed_ is disabled in your server's configuration."
 msgstr "Komenda, która bierze link do TikToka i zwraca wideo. Przydatna, jeśli _Auto Embed_ jest wyłączone w konfiguracji serwera."
 
-#: .\bot.py:148
-msgid "Opted-in"
-msgstr "Wyrażono zgodę"
-
-#: .\bot.py:148
+#: .\bot.py:156
 msgid "Opted-out"
 msgstr "Nie wyrażono zgody"
 
-#: .\bot.py:150
+#: .\bot.py:158
+msgid "Opted-in"
+msgstr "Wyrażono zgodę"
+
+#: .\bot.py:161
 msgid "You are currently: %s \n\n"
 "**We take your privacy seriously.**\n"
 "Your data is not public. Usage data provides statistics like total videos converted and total users. Please consider sharing your usage data with us to help improve the bot. View the help command for more information on how we handle your privacy."
@@ -89,79 +89,95 @@ msgstr "Aktualnie: %s \n\n"
 "**Bierzemy twoją prywatność na poważnie.**\n"
 "Twoje dane nie są upubliczniane. Dane o użytkowaniu umożliwiają statystyki takie jak ilość przekonwertowanych filmów oraz ilość użytkowników. Proszę rozważ udostępnienie nam tych danych, aby pomóc nam w ulepszaniu bota. Zobacz komendę help aby uzyskać więcej informacji o naszym sposobie postępowania z twoimi danymi."
 
-#: .\bot.py:156
+#: .\bot.py:170
 msgid "Thank you for sharing your usage data. It will go towards improving the bot."
 msgstr "Dziękujemy za udostępnianie danych o użytkowaniu. Pomoże nam to w ulepszaniu bota."
 
-#: .\bot.py:164
+#: .\bot.py:178
 msgid "You have opted out of usage data collection. Thank you for your time."
 msgstr "Zrezygnowano ze zbierania danych o użytkowaniu. Dziękujemy za poświęcony czas."
 
-#: .\bot.py:169
+#: .\bot.py:186
 msgid "Your usage data for this server has been deleted."
 msgstr "Twoje dane o użytkowaniu dla tego serwera zostały usunięte."
 
-#: .\bot.py:225 .\bot.py:253
+#: .\bot.py:248 .\bot.py:278
 msgid "Current Config"
 msgstr "Bieżąca Konfiguracja"
 
-#: .\bot.py:226 .\bot.py:253
+#: .\bot.py:249 .\bot.py:279
 msgid "To change a setting, use `/config <setting> <value>`."
 msgstr "Aby zmienić opcję, użyj `/config <setting> <value>`."
 
-#: .\bot.py:272
+#: .\bot.py:301
 msgid "There is no TikTok link in that message."
 msgstr "Brak linku TikTok w tej wiadomości."
 
-#: .\bot.py:314
+#: .\bot.py:335 .\bot.py:384 .\bot.py:435
+msgid "This video may be too long/big for Discord to embed. Just visit the link above."
+msgstr ""
+
+#: .\bot.py:338
+msgid "%s | [Origin](%s) %s"
+msgstr ""
+
+#: .\bot.py:354
 msgid "That doesn't seem to be a valid TikTok link."
 msgstr "To nie wygląda na poprawny link TikTok."
 
-#: .\bot.py:423
+#: .\bot.py:387 .\bot.py:457 .\bot.py:466
+msgid "%s %s"
+msgstr ""
+
+#: .\bot.py:440
+msgid "%s | From: %s %s"
+msgstr ""
+
+#: .\bot.py:492
 msgid "You don't have the permissions to delete this message."
 msgstr "Nie masz permisji na usunięcie tej wiadomości."
 
-#: .\bot.py:442
+#: .\bot.py:514
 msgid "Views %s"
 msgstr "Wyświetlenia %s"
 
-#: .\bot.py:443
+#: .\bot.py:517
 msgid "Likes %s"
 msgstr "Polubienia %s"
 
-#: .\bot.py:445
+#: .\bot.py:521
 msgid "Comments %s"
 msgstr "Komentarze %s"
 
-#: .\bot.py:446
+#: .\bot.py:524
 msgid "Shares %s"
 msgstr "Udostępnienia %s"
 
-#: .\bot.py:447
+#: .\bot.py:527
 msgid "Downloads %s"
 msgstr "Pobrania %s"
 
-#: .\bot.py:449
+#: .\bot.py:530
 msgid "Created"
 msgstr "Utworzono"
 
-#: .\bot.py:451 .\bot.py:503
+#: .\bot.py:533 .\bot.py:600
 msgid "Download"
 msgstr "Pobierz"
 
-#: .\bot.py:455
+#: .\bot.py:547
 msgid "Tags %s"
 msgstr "Tagi %s"
 
-#: .\bot.py:467
+#: .\bot.py:554
 msgid "Audio"
-msgstr "Audio"
+msgstr "Dźwięki"
 
-#: .\bot.py:481
+#: .\bot.py:569
 msgid "It seems this audio is deleted or taken down."
 msgstr "Wygląda na to, że to audio zostało usunięte."
 
-#: .\bot.py:493
+#: .\bot.py:585
 msgid "Video Count %s"
 msgstr "Ilość filmów %s"
 

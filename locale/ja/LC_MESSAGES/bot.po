@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tiktoker\n"
 "POT-Creation-Date: 2022-03-10 15:02-0500\n"
-"PO-Revision-Date: 2022-03-11 05:21\n"
+"PO-Revision-Date: 2022-03-14 03:28\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -11,33 +11,33 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Crowdin-Project: tiktoker\n"
-"X-Crowdin-Project-ID: 503708\n"
+"X-Crowdin-Project-ID: 504126\n"
 "X-Crowdin-Language: ja\n"
-"X-Crowdin-File: /[tiktoker-bot.TikToker] crowdin/locale/en/LC_MESSAGES/bot.po\n"
-"X-Crowdin-File-ID: 12\n"
+"X-Crowdin-File: /master/locale/en/LC_MESSAGES/bot.po\n"
+"X-Crowdin-File-ID: 22\n"
 "Language: ja_JP\n"
 
-#: .\bot.py:47
+#: .\bot.py:48
 msgid "What is TikToker?"
 msgstr "TikTokerとは？"
 
-#: .\bot.py:48
+#: .\bot.py:49
 msgid "Tiktoker is a bot that allows you to send playable TikTok videos to your Discord server."
 msgstr "Tiktokerは再生可能なTikTok動画をDiscordサーバーに送信するボットです。"
 
-#: .\bot.py:52
+#: .\bot.py:55
 msgid "Help Menu"
 msgstr "ヘルプメニュー"
 
-#: .\bot.py:53
+#: .\bot.py:56
 msgid "Click the arrow buttons below to navigate the help menu."
 msgstr "下の矢印ボタンをクリックすると、ヘルプメニューを移動できます。"
 
-#: .\bot.py:60
+#: .\bot.py:63
 msgid "Server Configuration"
 msgstr "サーバー設定"
 
-#: .\bot.py:61
+#: .\bot.py:64
 msgid "You may view the configuration of your server with `/config`.\n"
 "To edit the config use, `/config <option>`.\n"
 "Example: `/config delete_origin:True`"
@@ -45,43 +45,43 @@ msgstr "あなたのサーバーの設定は`/config`にあります。\n"
 "設定を変更するには`/config <option>`を使用してください。\n"
 "例: `/config delete_origin:True`"
 
-#: .\bot.py:68
+#: .\bot.py:71
 msgid "If enabled, the bot will automatically embed the Tiktok links."
 msgstr "有効にすると、ボットは自動的にTiktokのリンクを埋め込みます。"
 
-#: .\bot.py:74
+#: .\bot.py:77
 msgid "If enabled and _Auto Embed_ is enabled, the bot will delete the origin message containing the TikTok link."
 msgstr "この設定と_Auto Embed_の両方を有効にすると、ボットは元のTiktokのリンクを含むメッセージを削除します。"
 
-#: .\bot.py:80
+#: .\bot.py:83
 msgid "If enabled, the origin embed will be removed."
 msgstr "有効にすると、元の埋め込みは削除されます。"
 
-#: .\bot.py:85
+#: .\bot.py:90
 msgid "Commands"
 msgstr "コマンド"
 
-#: .\bot.py:86
+#: .\bot.py:91
 msgid "Here are some commands to interact with the bot."
 msgstr "ボットのコマンドはこちらです。"
 
-#: .\bot.py:91
+#: .\bot.py:98
 msgid "To use, right-click a message, go to `Apps > Convert %s`. Useful for when _Auto Embed_ is disabled in your server's configuration."
 msgstr "使用するには、メッセージを右クリックし、`アプリ > Convert %s`を選択してください。これは、サーバー設定で_Auto Embed_が無効になっている場合に便利です。"
 
-#: .\bot.py:98
+#: .\bot.py:105
 msgid "A slash command that takes a TikTok link and returns the video. Useful for when _Auto Embed_ is disabled in your server's configuration."
 msgstr "TikTokのリンクを取得し、TikTok動画を返すスラッシュコマンドです。サーバー設定で_Auto Embed_が無効になっている場合に便利です。"
 
-#: .\bot.py:148
-msgid "Opted-in"
-msgstr "承諾"
-
-#: .\bot.py:148
+#: .\bot.py:156
 msgid "Opted-out"
 msgstr "拒否"
 
-#: .\bot.py:150
+#: .\bot.py:158
+msgid "Opted-in"
+msgstr "承諾"
+
+#: .\bot.py:161
 msgid "You are currently: %s \n\n"
 "**We take your privacy seriously.**\n"
 "Your data is not public. Usage data provides statistics like total videos converted and total users. Please consider sharing your usage data with us to help improve the bot. View the help command for more information on how we handle your privacy."
@@ -89,79 +89,95 @@ msgstr "あなたは現在: %s \n\n"
 "**私たちはプライバシーを重視しています。**\n"
 "あなたのデータは公開されません。利用状況データは、変換された動画の合計やユーザー数の合計などの統計情報を提供します。ボットの改善のため、利用状況データの共有をご検討ください。私たちがあなたのプライバシーをどのように処理するかについては、ヘルプコマンドを参照してください。"
 
-#: .\bot.py:156
+#: .\bot.py:170
 msgid "Thank you for sharing your usage data. It will go towards improving the bot."
 msgstr "利用状況データを共有いただきありがとうございます。ボットの改善に利用させていただきます。"
 
-#: .\bot.py:164
+#: .\bot.py:178
 msgid "You have opted out of usage data collection. Thank you for your time."
 msgstr "利用状況データの収集を解除しました。ご利用ありがとうございます。"
 
-#: .\bot.py:169
+#: .\bot.py:186
 msgid "Your usage data for this server has been deleted."
 msgstr "このサーバーの利用状況データは削除されました。"
 
-#: .\bot.py:225 .\bot.py:253
+#: .\bot.py:248 .\bot.py:278
 msgid "Current Config"
 msgstr "現在の設定"
 
-#: .\bot.py:226 .\bot.py:253
+#: .\bot.py:249 .\bot.py:279
 msgid "To change a setting, use `/config <setting> <value>`."
 msgstr "設定を変更するには、`/config <setting> <value>`を使用してください。"
 
-#: .\bot.py:272
+#: .\bot.py:301
 msgid "There is no TikTok link in that message."
 msgstr "そのメッセージにはTIkTokのリンクが含まれていません。"
 
-#: .\bot.py:314
+#: .\bot.py:335 .\bot.py:384 .\bot.py:435
+msgid "This video may be too long/big for Discord to embed. Just visit the link above."
+msgstr ""
+
+#: .\bot.py:338
+msgid "%s | [Origin](%s) %s"
+msgstr ""
+
+#: .\bot.py:354
 msgid "That doesn't seem to be a valid TikTok link."
 msgstr "有効なTikTokのリンクではありません。"
 
-#: .\bot.py:423
+#: .\bot.py:387 .\bot.py:457 .\bot.py:466
+msgid "%s %s"
+msgstr ""
+
+#: .\bot.py:440
+msgid "%s | From: %s %s"
+msgstr ""
+
+#: .\bot.py:492
 msgid "You don't have the permissions to delete this message."
 msgstr "このメッセージを削除する権限がありません。"
 
-#: .\bot.py:442
+#: .\bot.py:514
 msgid "Views %s"
 msgstr "視聴回数: %s"
 
-#: .\bot.py:443
+#: .\bot.py:517
 msgid "Likes %s"
 msgstr "いいね: %s"
 
-#: .\bot.py:445
+#: .\bot.py:521
 msgid "Comments %s"
 msgstr "コメント: %s"
 
-#: .\bot.py:446
+#: .\bot.py:524
 msgid "Shares %s"
 msgstr "共有: %s"
 
-#: .\bot.py:447
+#: .\bot.py:527
 msgid "Downloads %s"
 msgstr "ダウンロード: %s"
 
-#: .\bot.py:449
+#: .\bot.py:530
 msgid "Created"
 msgstr "作成日時"
 
-#: .\bot.py:451 .\bot.py:503
+#: .\bot.py:533 .\bot.py:600
 msgid "Download"
 msgstr "ダウンロード"
 
-#: .\bot.py:455
+#: .\bot.py:547
 msgid "Tags %s"
 msgstr "タグ: %s"
 
-#: .\bot.py:467
+#: .\bot.py:554
 msgid "Audio"
 msgstr "音声"
 
-#: .\bot.py:481
+#: .\bot.py:569
 msgid "It seems this audio is deleted or taken down."
 msgstr "この音声は削除されているようです。"
 
-#: .\bot.py:493
+#: .\bot.py:585
 msgid "Video Count %s"
 msgstr "動画数: %s"
 

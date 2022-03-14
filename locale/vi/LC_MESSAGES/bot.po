@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tiktoker\n"
 "POT-Creation-Date: 2022-03-10 15:02-0500\n"
-"PO-Revision-Date: 2022-03-11 05:22\n"
+"PO-Revision-Date: 2022-03-14 03:28\n"
 "Last-Translator: \n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -11,153 +11,173 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Crowdin-Project: tiktoker\n"
-"X-Crowdin-Project-ID: 503708\n"
+"X-Crowdin-Project-ID: 504126\n"
 "X-Crowdin-Language: vi\n"
-"X-Crowdin-File: /[tiktoker-bot.TikToker] crowdin/locale/en/LC_MESSAGES/bot.po\n"
-"X-Crowdin-File-ID: 12\n"
+"X-Crowdin-File: /master/locale/en/LC_MESSAGES/bot.po\n"
+"X-Crowdin-File-ID: 22\n"
 "Language: vi_VN\n"
 
-#: .\bot.py:47
+#: .\bot.py:48
 msgid "What is TikToker?"
 msgstr "Tiktoker là gì?"
 
-#: .\bot.py:48
+#: .\bot.py:49
 msgid "Tiktoker is a bot that allows you to send playable TikTok videos to your Discord server."
 msgstr "Tiktoker là 1 con bot giúp bạn gửi những video Tiktok tới server Discord của bạn."
 
-#: .\bot.py:52
+#: .\bot.py:55
 msgid "Help Menu"
 msgstr "Bảng trợ giúp"
 
-#: .\bot.py:53
+#: .\bot.py:56
 msgid "Click the arrow buttons below to navigate the help menu."
 msgstr "Click vào mũi tên bên dưới để điều hướng đến menu trợ giúp."
 
-#: .\bot.py:60
+#: .\bot.py:63
 msgid "Server Configuration"
 msgstr "Cài đặt server"
 
-#: .\bot.py:61
+#: .\bot.py:64
 msgid "You may view the configuration of your server with `/config`.\n"
 "To edit the config use, `/config <option>`.\n"
 "Example: `/config delete_origin:True`"
-msgstr ""
+msgstr "Bạn có thể xem cấu hình server của bạn bằng `/config`.\n"
+"Để chỉnh sửa việc sử dụng cấu hình, sử dụng `/config <option>`.\n"
+"Ví dụ: `/config delete_origin:True`"
 
-#: .\bot.py:68
+#: .\bot.py:71
 msgid "If enabled, the bot will automatically embed the Tiktok links."
 msgstr ""
 
-#: .\bot.py:74
+#: .\bot.py:77
 msgid "If enabled and _Auto Embed_ is enabled, the bot will delete the origin message containing the TikTok link."
 msgstr ""
 
-#: .\bot.py:80
+#: .\bot.py:83
 msgid "If enabled, the origin embed will be removed."
 msgstr ""
 
-#: .\bot.py:85
+#: .\bot.py:90
 msgid "Commands"
 msgstr "Lệnh"
 
-#: .\bot.py:86
-msgid "Here are some commands to interact with the bot."
-msgstr ""
-
 #: .\bot.py:91
-msgid "To use, right-click a message, go to `Apps > Convert %s`. Useful for when _Auto Embed_ is disabled in your server's configuration."
-msgstr ""
+msgid "Here are some commands to interact with the bot."
+msgstr "Đây là một số câu lệnh có thể được dùng để tương tác với bot."
 
 #: .\bot.py:98
+msgid "To use, right-click a message, go to `Apps > Convert %s`. Useful for when _Auto Embed_ is disabled in your server's configuration."
+msgstr "Để sử dụng, nhấp chuột phải vào tin nhắn và chọn `Ứng dụng > Convert %s`. Bạn nên làm điều này khi _Auto Embed_ bị vô hiệu hóa trong cài đặt server của bạn."
+
+#: .\bot.py:105
 msgid "A slash command that takes a TikTok link and returns the video. Useful for when _Auto Embed_ is disabled in your server's configuration."
 msgstr ""
 
-#: .\bot.py:148
-msgid "Opted-in"
-msgstr ""
-
-#: .\bot.py:148
+#: .\bot.py:156
 msgid "Opted-out"
-msgstr ""
+msgstr "Hủy đăng ký"
 
-#: .\bot.py:150
+#: .\bot.py:158
+msgid "Opted-in"
+msgstr "Đăng ký nhận tin"
+
+#: .\bot.py:161
 msgid "You are currently: %s \n\n"
 "**We take your privacy seriously.**\n"
 "Your data is not public. Usage data provides statistics like total videos converted and total users. Please consider sharing your usage data with us to help improve the bot. View the help command for more information on how we handle your privacy."
-msgstr ""
+msgstr "Hiện tại bạn đang: %s \n\n"
+"**Chúng tôi rất nghiêm túc trong việc bảo vệ quyền riêng tư của bạn**\n"
+" Dữ liệu của bạn sẽ không được công khai. Sử dụng dữ liệu cung cấp những thống kê như tổng số video đã được chuyển đổi và tổng số người dùng. Hãy cân nhắc việc chia sẻ dữ liệu sử dụng của bạn với chúng tổi để giúp cải thiện con bot. Xem lệnh trợ giúp để biết thêm thông tin về cách chúng tôi xử lý quyền riêng tư của bạn."
 
-#: .\bot.py:156
+#: .\bot.py:170
 msgid "Thank you for sharing your usage data. It will go towards improving the bot."
-msgstr ""
+msgstr "Cảm ơn bạn vì đã đồng ý chia sẻ dữ liệu cá nhân. Điều này có thể giúp chung tôi cải thiện con bot."
 
-#: .\bot.py:164
+#: .\bot.py:178
 msgid "You have opted out of usage data collection. Thank you for your time."
 msgstr "Bạn đã từ chối việc thu thập dữ liệu. Cảm ơn vì thời gian quý báu của bạn."
 
-#: .\bot.py:169
+#: .\bot.py:186
 msgid "Your usage data for this server has been deleted."
 msgstr "Dữ liệu cá nhân của bạn trong máy chủ này đã được xóa bỏ."
 
-#: .\bot.py:225 .\bot.py:253
+#: .\bot.py:248 .\bot.py:278
 msgid "Current Config"
 msgstr "Cài đặt hiện tại"
 
-#: .\bot.py:226 .\bot.py:253
+#: .\bot.py:249 .\bot.py:279
 msgid "To change a setting, use `/config <setting> <value>`."
-msgstr ""
+msgstr "Để thay đổi cài đặt, sử dụng `/config <setting> <value>`."
 
-#: .\bot.py:272
+#: .\bot.py:301
 msgid "There is no TikTok link in that message."
+msgstr "Không có đường liên kết TikTok nào trong tin nhắn."
+
+#: .\bot.py:335 .\bot.py:384 .\bot.py:435
+msgid "This video may be too long/big for Discord to embed. Just visit the link above."
 msgstr ""
 
-#: .\bot.py:314
+#: .\bot.py:338
+msgid "%s | [Origin](%s) %s"
+msgstr ""
+
+#: .\bot.py:354
 msgid "That doesn't seem to be a valid TikTok link."
+msgstr "Có vẻ như đường liên kết TikTok đó không có hiệu lực."
+
+#: .\bot.py:387 .\bot.py:457 .\bot.py:466
+msgid "%s %s"
 msgstr ""
 
-#: .\bot.py:423
+#: .\bot.py:440
+msgid "%s | From: %s %s"
+msgstr ""
+
+#: .\bot.py:492
 msgid "You don't have the permissions to delete this message."
 msgstr "Bạn không có quyền xóa tin nhắn này."
 
-#: .\bot.py:442
+#: .\bot.py:514
 msgid "Views %s"
 msgstr "Lượt xem %s"
 
-#: .\bot.py:443
+#: .\bot.py:517
 msgid "Likes %s"
 msgstr "Thích %s"
 
-#: .\bot.py:445
+#: .\bot.py:521
 msgid "Comments %s"
 msgstr "Bình luận %s"
 
-#: .\bot.py:446
+#: .\bot.py:524
 msgid "Shares %s"
 msgstr "Chia sẻ %s"
 
-#: .\bot.py:447
+#: .\bot.py:527
 msgid "Downloads %s"
 msgstr "Tải xuống %s"
 
-#: .\bot.py:449
+#: .\bot.py:530
 msgid "Created"
 msgstr "Đã được tạo"
 
-#: .\bot.py:451 .\bot.py:503
+#: .\bot.py:533 .\bot.py:600
 msgid "Download"
 msgstr "Tải xuống"
 
-#: .\bot.py:455
+#: .\bot.py:547
 msgid "Tags %s"
 msgstr "Các thẻ %s"
 
-#: .\bot.py:467
+#: .\bot.py:554
 msgid "Audio"
 msgstr "Âm thanh"
 
-#: .\bot.py:481
+#: .\bot.py:569
 msgid "It seems this audio is deleted or taken down."
-msgstr ""
+msgstr "Có vẻ như âm thanh này đã bị xóa hoặc bị gỡ xuống."
 
-#: .\bot.py:493
+#: .\bot.py:585
 msgid "Video Count %s"
 msgstr "Số lượng video %s"
 

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tiktoker\n"
 "POT-Creation-Date: 2022-03-10 15:02-0500\n"
-"PO-Revision-Date: 2022-03-14 03:46\n"
+"PO-Revision-Date: 2022-03-14 04:04\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -115,11 +115,11 @@ msgstr "Brak linku TikTok w tej wiadomości."
 
 #: .\bot.py:335 .\bot.py:384 .\bot.py:432
 msgid "This video may be too long/big for Discord to embed. Just visit the link above."
-msgstr ""
+msgstr "Ten film może być zbyt długi/duży dla Discord, aby go osadzać. Po prostu odwiedź powyższy link."
 
 #: .\bot.py:338
 msgid "%s | [Origin](%s) %s"
-msgstr ""
+msgstr "%s | [Oryginalną](%s) %s"
 
 #: .\bot.py:354
 msgid "That doesn't seem to be a valid TikTok link."
@@ -127,7 +127,7 @@ msgstr "To nie wygląda na poprawny link TikTok."
 
 #: .\bot.py:437
 msgid "%s | From: %s %s"
-msgstr ""
+msgstr "%s | Od: %s %s"
 
 #: .\bot.py:483
 msgid "You don't have the permissions to delete this message."

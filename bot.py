@@ -384,7 +384,7 @@ async def slash_tiktok(ctx: dis.InteractionContext, link: str):
         too_big = _[config.language].gettext(
             "This video may be too long/big for Discord to embed. Just visit the link above."
         )
-    message = (short_url + ("\n" + too_big if too_big else ""),)
+    message = short_url + ("\n" + too_big if too_big else "")
     sent_msg = await ctx.send(message, components=[more_info_btn, delete_msg_btn])
     await insert_usage_data(ctx.guild.id, ctx.author.id, video_id, sent_msg.id)
 
@@ -451,13 +451,13 @@ async def on_message_create(event: dis.events.MessageCreate):
     elif config.suppress_origin_embed:
         await event.message.suppress_embeds()
         await bot.fetch_channel(event.message._channel_id)
-        message = (short_url + ("\n" + too_big if too_big else ""),)
+        message = short_url + ("\n" + too_big if too_big else "")
         sent_msg = await event.message.reply(
             message, components=[more_info_btn, delete_msg_btn]
         )
     else:
         await bot.fetch_channel(event.message._channel_id)
-        message = (short_url + ("\n" + too_big if too_big else ""),)
+        message = short_url + ("\n" + too_big if too_big else "")
         sent_msg = await event.message.reply(
             message, components=[more_info_btn, delete_msg_btn]
         )
